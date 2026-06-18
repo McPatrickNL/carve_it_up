@@ -1,15 +1,8 @@
 package nl.patrick.carve_it_up.item;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import nl.patrick.carve_it_up.registry.ModRegistries;
 
 import static nl.patrick.carve_it_up.registry.ModRegistries.*;
 

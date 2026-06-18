@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+base {
+    archivesName = "${mod_id}-fabric"
+}
+
+dependencies {
+    implementation project(":common")
+}

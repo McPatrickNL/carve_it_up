@@ -1,9 +1,16 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        mavenCentral()
     }
 }
 
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
+
+rootProject.name = "carve_it_up"
+
+include("common")
+include("neoforge")
+include("fabric")

@@ -2,7 +2,6 @@ package nl.patrick.carve_it_up.tab;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import nl.patrick.carve_it_up.item.ModItems;
 
