@@ -1,5 +1,10 @@
 package nl.patrick.carve_it_up;
 
+import net.minecraft.world.item.*;
+import nl.patrick.carve_it_up.block.ModBlocks;
+import nl.patrick.carve_it_up.item.ModItems;
+import nl.patrick.carve_it_up.registry.ModRegistries;
+import nl.patrick.carve_it_up.tab.ModCreativeModeTabs;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -7,10 +12,6 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
@@ -33,45 +34,21 @@ public class CarveItUp {
     public static final String                            MOD_ID             = "carve_it_up";
     public static final Logger                            LOGGER             = LogUtils.getLogger();
     
-    // Deferred Registers
-    public static final DeferredRegister.Blocks           BLOCKS             = DeferredRegister.createBlocks(MOD_ID);
-    public static final DeferredRegister.Items            ITEMS              = DeferredRegister.createItems(MOD_ID);
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
     
-    // EXAMPLES
-    
-    // Creates a new Block with the id "carve_it_up:example_block", combining the namespace and path
-    public static final DeferredBlock<Block> EXAMPLE_BLOCK = BLOCKS.registerSimpleBlock("example_block", p -> p.mapColor(MapColor.STONE));
-    
-    // Creates a new BlockItem with the id "carve_it_up:example_block", combining the namespace and path
-    public static final DeferredItem<BlockItem> EXAMPLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", EXAMPLE_BLOCK);
-
-    // Creates a new food item with the id "carve_it_up:example_id", nutrition 1 and saturation 2
-    public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", p -> p.food(new FoodProperties.Builder()
-            .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
-
-    // Creates a creative tab with the id "carve_it_up:example_tab" for the example item, that is placed after the combat tab
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.ciu")) //The language key for the title of your CreativeModeTab
-            .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> EXAMPLE_ITEM.get().getDefaultInstance())
-            .displayItems((parameters, output) -> {
-                output.accept(EXAMPLE_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
-            }).build());
-
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public CarveItUp(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
-        // Register the Deferred Register to the mod event bus so blocks get registered
-        BLOCKS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so items get registered
-        ITEMS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so tabs get registered
-        CREATIVE_MODE_TABS.register(modEventBus);
-
+        // Create deferred registers:
+        ModBlocks.init();
+        ModItems.init();
+        ModCreativeModeTabs.init();
+        
+        // Register the Deferred Register to the mod event bus so they get registered
+        ModRegistries.register(modEventBus);
+        
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (CarveItUp) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
