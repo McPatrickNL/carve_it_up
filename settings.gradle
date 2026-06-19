@@ -2,6 +2,8 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        // CRITICAL: This allows Gradle to find the 'net.fabricmc.fabric-loom' plugin!
+        maven { url = "https://maven.fabricmc.net/" }
     }
 }
 

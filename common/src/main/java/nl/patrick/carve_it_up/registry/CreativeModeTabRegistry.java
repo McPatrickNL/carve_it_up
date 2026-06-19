@@ -1,0 +1,13 @@
+package nl.patrick.carve_it_up.registry;
+
+import net.minecraft.world.item.CreativeModeTab;
+
+import java.util.function.Supplier;
+
+
+public interface CreativeModeTabRegistry
+{
+    RegistryObject<CreativeModeTab> register(
+            String name,
+            Supplier<CreativeModeTab> supplier);
+}
