@@ -1,26 +1,22 @@
 package nl.patrick.carve_it_up.item;
 
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
+import nl.patrick.carve_it_up.registry.ItemRegistry;
 import nl.patrick.carve_it_up.registry.RegistryObject;
 import nl.patrick.carve_it_up.services.Services;
 
-import static nl.patrick.carve_it_up.registry.ModCommonRegistries.*;
+import static nl.patrick.carve_it_up.CarveItUpCommon.LOGGER;
 
 
+// File Location from project root:
+// common/src/main/java/nl/patrick/carve_it_up/item/ModItems.java
 public class ModItems
 {
-//    // Creates a new food item with the id "carve_it_up:example_id", nutrition 1 and saturation 2
-//    public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem(
-//            "example_item",
-//            p -> p.food(new FoodProperties.Builder().alwaysEdible().nutrition(1).saturationModifier(2f).build()));
+    public static final ItemRegistry ITEMS = Services.REGISTRY.items();
     
+    public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", Item::new);
     
-    public static final RegistryObject<Item> EXAMPLE_ITEM =
-            Services.REGISTRY.items().register(
-                    "example_item",
-                    () -> new Item(
-                            new Item.Properties()));
-    
-    public static void init(){}
+    public static void init(){
+        LOGGER.info("Registering Items for Carve It Up.");
+    }
 }

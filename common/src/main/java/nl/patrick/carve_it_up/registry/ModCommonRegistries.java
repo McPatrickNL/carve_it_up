@@ -7,6 +7,8 @@ import net.minecraft.world.item.CreativeModeTab;
 
 import static nl.patrick.carve_it_up.CarveItUpCommon.MOD_ID;
 
+// File Location from project root:
+// common/src/main/java/nl/patrick/carve_it_up/registry/ModCommonRegistries.java
 public class ModCommonRegistries
 {
 //    public static final DeferredRegister.Blocks BLOCKS =

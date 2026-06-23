@@ -1,11 +1,17 @@
+//package nl.patrick.carve_it_up;
+//
+//import java.util.List;
 package nl.patrick.carve_it_up;
-
-import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+
+
+// File Location from project root:
+// neoforge/src/main/java/nl/patrick/carve_it_up/Config.java
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 

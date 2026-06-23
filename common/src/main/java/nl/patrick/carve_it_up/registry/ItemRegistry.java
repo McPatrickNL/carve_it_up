@@ -2,12 +2,13 @@ package nl.patrick.carve_it_up.registry;
 
 import net.minecraft.world.item.Item;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 
+// File Location from project root:
+// common/src/main/java/nl/patrick/carve_it_up/registry/ItemRegistry.java
 public interface ItemRegistry
 {
-    RegistryObject<Item> register(
-            String name,
-            Supplier<Item> supplier);
+    RegistryObject<Item> register(String name, Function<Item.Properties, Item> factory);
 }

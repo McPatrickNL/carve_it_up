@@ -1,5 +1,8 @@
+// File Location from project root:
+// build.gradle
 plugins {
     id 'idea'
+    id 'net.neoforged.moddev' version '2.0.141' apply false
 }
 
 allprojects {

@@ -1,0 +1,14 @@
+{
+  "itemGroup.carve_it_up.carve_it_up_tab": "Carve It Up Mod Tab",
+  "itemGroup.carve_it_up": "Carve It Up Mod Tab",
+  "block.carve_it_up.example_block": "Example Block",
+  "item.carve_it_up.example_item": "Example Item",
+
+  "carve_it_up.configuration.title": "Carve It Up Configs",
+  "carve_it_up.configuration.section.carve_it_up.common.toml": "Carve It Up Configs",
+  "carve_it_up.configuration.section.carve_it_up.common.toml.title": "Carve It Up Configs",
+  "carve_it_up.configuration.items": "Item List",
+  "carve_it_up.configuration.logDirtBlock": "Log Dirt Block",
+  "carve_it_up.configuration.magicNumberIntroduction": "Magic Number Text",
+  "carve_it_up.configuration.magicNumber": "Magic Number"
+}

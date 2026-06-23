@@ -1,7 +1,22 @@
+// File Location from project root:
+// common/build.gradle
 plugins {
     id 'java-library'
+    id 'net.neoforged.moddev'
 }
 
 base {
     archivesName = "${mod_id}-common"
+}
+
+neoForge {
+    // Look for versions on https://projects.neoforged.net/neoforged/neoform
+    // This turns on ModDevGradle's official "Vanilla-Mode" for cross-loader subprojects!
+    neoFormVersion = "1.21-20240613.152323" // Replace with your version's matching NeoForm string
+
+    // Optional: You can still generate IDE runs for testing plain vanilla right from common
+    runs {
+        client { client() }
+        server { server() }
+    }
 }

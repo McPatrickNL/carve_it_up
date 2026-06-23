@@ -1,9 +1,14 @@
+// File Location from project root:
+// settings.gradle
 pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        // CRITICAL: This allows Gradle to find the 'net.fabricmc.fabric-loom' plugin!
+        // Location of the Gradle 'net.fabricmc.fabric-loom' plugin
         maven { url = "https://maven.fabricmc.net/" }
+    }
+    plugins {
+        id 'net.fabricmc.fabric-loom' version "${loom_version}"
     }
 }
 
