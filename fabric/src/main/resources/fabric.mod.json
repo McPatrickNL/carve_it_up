@@ -13,10 +13,13 @@
 
     "entrypoints": {
         "main": [
-            "nl.patrick.carve_it_up.CarveItUpFabric"
+            "nl.patrick.carve_it_up.FabricMod"
         ]
     },
 
+    "mixins": [
+        "carve_it_up.mixins.json"
+    ],
     "depends": {
         "fabricloader": ">=0.15.0",
         "minecraft": "26.1",

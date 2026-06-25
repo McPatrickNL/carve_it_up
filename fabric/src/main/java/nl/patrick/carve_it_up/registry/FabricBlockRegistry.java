@@ -11,8 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import nl.patrick.carve_it_up.CarveItUpCommon;
+import nl.patrick.carve_it_up.CommonMod;
 
 import java.util.function.Function;
 
@@ -22,7 +21,7 @@ public class FabricBlockRegistry implements BlockRegistry
     @Override
     public RegistryObject<Block> register(String name, Function<Block.Properties, Block> factory)
     {
-        Identifier id = Identifier.fromNamespaceAndPath(CarveItUpCommon.MOD_ID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(CommonMod.MOD_ID, name);
         Block.Properties properties = Block.Properties.of()
                                                       .setId(ResourceKey.create(Registries.BLOCK, id));
         
@@ -33,7 +32,7 @@ public class FabricBlockRegistry implements BlockRegistry
     @Override
     public RegistryObject<BlockItem> registerBlockItem(String name, Function<Item.Properties, BlockItem> factory)
     {
-        Identifier id = Identifier.fromNamespaceAndPath(CarveItUpCommon.MOD_ID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(CommonMod.MOD_ID, name);
         Item.Properties properties = new Item.Properties()
                 .setId(ResourceKey.create(Registries.ITEM, id));
         

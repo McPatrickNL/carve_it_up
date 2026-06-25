@@ -1,12 +1,5 @@
 package nl.patrick.carve_it_up.registry;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.CreativeModeTab;
-//import net.neoforged.bus.api.IEventBus;
-//import net.neoforged.neoforge.registries.DeferredRegister;
-
-import static nl.patrick.carve_it_up.CarveItUpCommon.MOD_ID;
-
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/registry/ModCommonRegistries.java
 public class ModCommonRegistries

@@ -1,11 +1,8 @@
 package nl.patrick.carve_it_up;
 
-import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import nl.patrick.carve_it_up.block.ModBlocks;
 import nl.patrick.carve_it_up.item.ModItems;
@@ -17,10 +14,10 @@ import nl.patrick.carve_it_up.tab.ModCreativeModeTabs;
 
 // File Location from project root:
 // neoforge/src/main/java/nl/patrick/carve_it_up/CarveItUpNeoForge.java
-@Mod(CarveItUpCommon.MOD_ID)
-public class CarveItUpNeoForge
+@Mod(CommonMod.MOD_ID)
+public class NeoForgeMod
 {
-    public CarveItUpNeoForge(IEventBus modEventBus, ModContainer modContainer)
+    public NeoForgeMod(IEventBus modEventBus, ModContainer modContainer)
     {
         // Tell NeoForge to watch our registries
         NeoForgeBlockRegistry.BLOCKS.register(modEventBus);
@@ -29,7 +26,7 @@ public class CarveItUpNeoForge
         
         // Initialize the common code setup (which fills tabs, items, etc.)
         
-        CarveItUpCommon.init();
+        CommonMod.init();
         
         modEventBus.addListener(this::addCreativeTabs);
         

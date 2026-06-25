@@ -6,7 +6,7 @@ import nl.patrick.carve_it_up.item.ModItems;
 import nl.patrick.carve_it_up.registry.RegistryObject;
 import nl.patrick.carve_it_up.services.Services;
 
-import static nl.patrick.carve_it_up.CarveItUpCommon.LOGGER;
+import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
 
 // File Location from project root:

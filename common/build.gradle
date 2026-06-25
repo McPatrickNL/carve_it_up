@@ -20,3 +20,12 @@ neoForge {
         server { server() }
     }
 }
+
+dependencies {
+    // This gives you access to @Mixin, @Inject, @At, etc.
+    implementation 'org.spongepowered:mixin:0.8.5'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // Ensure you also include your primary Minecraft/loader dependencies
+    // depending on what multiplatform architecture tool you are using (like Architectury or vanilla gradle)
+}

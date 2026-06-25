@@ -10,7 +10,7 @@ import nl.patrick.carve_it_up.tab.ModCreativeModeTabs;
 
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/CarveItUpCommon.java
-public class CarveItUpCommon
+public class CommonMod
 {
     //public static final String MOD_ID = "carve_it_up";
     public static final String MOD_ID = "carve_it_up";

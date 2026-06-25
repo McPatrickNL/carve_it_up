@@ -12,7 +12,7 @@ import nl.patrick.carve_it_up.item.ModItems;
 // File Location from project root:
 // fabric/src/main/java/nl/patrick/carve_it_up/CarveItUpFabric.java
 
-public class CarveItUpFabric implements ModInitializer
+public class FabricMod implements ModInitializer
 {
     // todo in fabric.mod.json:
     //  I removed "icon": "assets/carve_it_up/icon.png", after the license line.
@@ -24,11 +24,11 @@ public class CarveItUpFabric implements ModInitializer
     @Override
     public void onInitialize() {
         // 1. Trigger the common registration block (Registers blocks/items/tabs)
-        CarveItUpCommon.init();
+        CommonMod.init();
         
         ResourceKey<CreativeModeTab> tabKey = ResourceKey.create(
                 Registries.CREATIVE_MODE_TAB,
-                Identifier.fromNamespaceAndPath(CarveItUpCommon.MOD_ID, "carve_it_up_tab")
+                Identifier.fromNamespaceAndPath(CommonMod.MOD_ID, "carve_it_up_tab")
         );
         
         // 2. Populate your multiplatform creative tab on Fabric

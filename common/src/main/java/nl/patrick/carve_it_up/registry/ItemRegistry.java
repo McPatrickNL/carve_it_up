@@ -3,7 +3,6 @@ package nl.patrick.carve_it_up.registry;
 import net.minecraft.world.item.Item;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 
 // File Location from project root:

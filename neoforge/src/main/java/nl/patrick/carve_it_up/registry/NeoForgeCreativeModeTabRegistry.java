@@ -6,7 +6,7 @@ package nl.patrick.carve_it_up.registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import nl.patrick.carve_it_up.CarveItUpCommon;
+import nl.patrick.carve_it_up.CommonMod;
 
 import java.util.function.Supplier;
 
@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 public class NeoForgeCreativeModeTabRegistry implements CreativeModeTabRegistry
 {
     public static final DeferredRegister<CreativeModeTab> TABS =
-        DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CarveItUpCommon.MOD_ID);
+        DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CommonMod.MOD_ID);
     
     @Override
     public RegistryObject<CreativeModeTab> register(String name, Supplier<CreativeModeTab> supplier) {

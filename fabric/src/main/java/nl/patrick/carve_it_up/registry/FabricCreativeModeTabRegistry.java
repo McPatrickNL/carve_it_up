@@ -4,7 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
-import nl.patrick.carve_it_up.CarveItUpCommon;
+import nl.patrick.carve_it_up.CommonMod;
 
 import java.util.function.Supplier;
 
@@ -17,7 +17,7 @@ public class FabricCreativeModeTabRegistry implements CreativeModeTabRegistry
     @Override
     public RegistryObject<CreativeModeTab> register(String name, Supplier<CreativeModeTab> supplier)
     {
-        Identifier id = Identifier.fromNamespaceAndPath(CarveItUpCommon.MOD_ID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(CommonMod.MOD_ID, name);
         CreativeModeTab tab = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, id, supplier.get());
         return new FabricRegistryObject<>(tab);
     }

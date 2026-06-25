@@ -10,7 +10,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import nl.patrick.carve_it_up.CarveItUpCommon;
+import nl.patrick.carve_it_up.CommonMod;
 
 import java.util.function.Function;
 
@@ -18,7 +18,7 @@ import java.util.function.Function;
 public class NeoForgeBlockRegistry implements BlockRegistry
 {
     public static final DeferredRegister<Block> BLOCKS =
-            DeferredRegister.create(Registries.BLOCK, CarveItUpCommon.MOD_ID);
+            DeferredRegister.create(Registries.BLOCK, CommonMod.MOD_ID);
     
     @Override
     public RegistryObject<Block> register(String name, Function<Block.Properties, Block> factory)
@@ -26,7 +26,7 @@ public class NeoForgeBlockRegistry implements BlockRegistry
         return new NeoForgeRegistryObject<>(BLOCKS.register(name, () -> {
             // Automatically pre-configure the ID on the block properties
             Block.Properties properties = Block.Properties.of()
-                                                          .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CarveItUpCommon.MOD_ID, name)));
+                                                          .setId(ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(CommonMod.MOD_ID, name)));
             return factory.apply(properties);
         }));
     }
@@ -37,7 +37,7 @@ public class NeoForgeBlockRegistry implements BlockRegistry
         return new NeoForgeRegistryObject<>(NeoForgeItemRegistry.ITEMS.register(name, () -> {
             // Automatically pre-configure the ID on the block-item properties
             Item.Properties properties = new Item.Properties()
-                    .setId(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CarveItUpCommon.MOD_ID, name)));
+                    .setId(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(CommonMod.MOD_ID, name)));
             return factory.apply(properties);
         }));
     }
