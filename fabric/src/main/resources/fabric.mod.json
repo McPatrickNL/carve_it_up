@@ -1,0 +1,25 @@
+{
+    "schemaVersion": 1,
+    "id": "carve_it_up",
+    "version": "${version}",
+    "name": "Carve It Up",
+    "description": "An example multiplatform mod!",
+    "authors": [
+        "Patrick"
+    ],
+    "contact": {},
+    "license": "MMPLv2",
+    "environment": "*",
+
+    "entrypoints": {
+        "main": [
+            "nl.patrick.carve_it_up.CarveItUpFabric"
+        ]
+    },
+
+    "depends": {
+        "fabricloader": ">=0.15.0",
+        "minecraft": "26.1",
+        "java": ">=21"
+    }
+}
