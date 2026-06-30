@@ -1,4 +1,4 @@
-package nl.patrick.carve_it_up.mixins;
+package nl.patrick.carve_it_up.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -23,10 +23,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/carving/MixinBlockRenderDispatcher.java
 
+// When adding new mixins, add them to resources/carve_it_up.mixins.json as well.
 @Mixin(BlockRenderDispatcher.class)
 public class MixinBlockRenderDispatcher {
     
-    @Inject(method = "renderBatched", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "renderBatched", at = @At("HEAD"), cancellable = true, remap = false)
     private void interceptRender(BlockState state, BlockPos pos, BlockAndTintGetter level, PoseStack poseStack, VertexConsumer consumer, boolean checkSides, RandomSource random, CallbackInfo ci) {
         
         if (CarvingTracker.isCarved(pos)) {

@@ -1,8 +1,7 @@
 {
     "required": true,
-    "minVersion": "0.8",
+    "minVersion": "0.8.5",
     "package": "nl.patrick.carve_it_up.mixin",
-    "compatibilityLevel": "JAVA_21",
     "mixins": [
         "MixinBlockRenderDispatcher"
     ],

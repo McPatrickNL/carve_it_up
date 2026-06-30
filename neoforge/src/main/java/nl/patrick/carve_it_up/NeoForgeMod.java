@@ -7,9 +7,11 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import nl.patrick.carve_it_up.block.ModBlocks;
 import nl.patrick.carve_it_up.item.ModItems;
 import nl.patrick.carve_it_up.registry.NeoForgeBlockRegistry;
+import nl.patrick.carve_it_up.registry.NeoForgeComponentRegistry;
 import nl.patrick.carve_it_up.registry.NeoForgeCreativeModeTabRegistry;
 import nl.patrick.carve_it_up.registry.NeoForgeItemRegistry;
 import nl.patrick.carve_it_up.tab.ModCreativeModeTabs;
+
 
 
 // File Location from project root:
@@ -19,13 +21,14 @@ public class NeoForgeMod
 {
     public NeoForgeMod(IEventBus modEventBus, ModContainer modContainer)
     {
-        // Tell NeoForge to watch our registries
+        // 1. Tell NeoForge to watch our registries
         NeoForgeBlockRegistry.BLOCKS.register(modEventBus);
         NeoForgeItemRegistry.ITEMS.register(modEventBus);
         NeoForgeCreativeModeTabRegistry.TABS.register(modEventBus);
+        NeoForgeComponentRegistry.COMPONENTS.register(modEventBus);
         
-        // Initialize the common code setup (which fills tabs, items, etc.)
-        
+        // 2. Initialize the common code setup (which fills tabs, items, etc.)
+        // This has to go after telling NeoForge about all registries in #1!
         CommonMod.init();
         
         modEventBus.addListener(this::addCreativeTabs);

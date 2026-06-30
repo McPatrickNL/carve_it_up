@@ -1,5 +1,6 @@
 package nl.patrick.carve_it_up.registry;
 
+import nl.patrick.carve_it_up.component.ModComponents;
 import nl.patrick.carve_it_up.services.IRegistryPlatform;
 
 // File Location from project root:
@@ -9,6 +10,7 @@ public class FabricRegistryPlatform implements IRegistryPlatform
     private final ItemRegistry items = new FabricItemRegistry();
     private final BlockRegistry blocks = new FabricBlockRegistry();
     private final CreativeModeTabRegistry tabs = new FabricCreativeModeTabRegistry();
+    private final ComponentRegistry components = new FabricComponentRegistry();
     
     @Override
     public ItemRegistry items()
@@ -26,5 +28,11 @@ public class FabricRegistryPlatform implements IRegistryPlatform
     public CreativeModeTabRegistry creativeModeTabs()
     {
         return this.tabs;
+    }
+    
+    @Override
+    public ComponentRegistry components()
+    {
+        return this.components;
     }
 }

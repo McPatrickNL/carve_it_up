@@ -2,11 +2,15 @@ package nl.patrick.carve_it_up;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import nl.patrick.carve_it_up.block.ModBlocks;
+import nl.patrick.carve_it_up.component.ModComponents;
 import nl.patrick.carve_it_up.item.ModItems;
 
 // File Location from project root:
@@ -16,10 +20,15 @@ public class FabricMod implements ModInitializer
 {
     // todo in fabric.mod.json:
     //  I removed "icon": "assets/carve_it_up/icon.png", after the license line.
-    //  I removed (before "depends"):
-    //  "mixins": [
-    //    "carve_it_up.mixins.json"
-    //  ],
+    
+    private static final Identifier                                    myComponent  = Identifier.fromNamespaceAndPath("mymod", "my_component");
+    public static final  DataComponentType<ModComponents.MyCustomData> MY_COMPONENT = Registry.register(
+            BuiltInRegistries.DATA_COMPONENT_TYPE,
+            myComponent,
+            DataComponentType.<ModComponents.MyCustomData>builder()
+                             .persistent(ModComponents.MyCustomData.CODEC)
+                             .networkSynchronized(ModComponents.MyCustomData.STREAM_CODEC)
+                             .build());
     
     @Override
     public void onInitialize() {

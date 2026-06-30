@@ -2,6 +2,7 @@
 package nl.patrick.carve_it_up;
 
 import com.mojang.logging.LogUtils;
+import nl.patrick.carve_it_up.component.ModComponents;
 import org.slf4j.Logger;
 
 import nl.patrick.carve_it_up.block.ModBlocks;
@@ -22,5 +23,6 @@ public class CommonMod
         ModBlocks.init();
         ModItems.init();
         ModCreativeModeTabs.init();
+        ModComponents.init();
     }
 }

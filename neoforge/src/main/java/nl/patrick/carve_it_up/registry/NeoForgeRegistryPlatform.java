@@ -13,6 +13,7 @@ public class NeoForgeRegistryPlatform
     private final ItemRegistry items = new NeoForgeItemRegistry();
     private final BlockRegistry blocks = new NeoForgeBlockRegistry();
     private final CreativeModeTabRegistry tabs = new NeoForgeCreativeModeTabRegistry();
+    private final ComponentRegistry components = new NeoForgeComponentRegistry();
     
     @Override
     public ItemRegistry items()
@@ -30,5 +31,11 @@ public class NeoForgeRegistryPlatform
     public CreativeModeTabRegistry creativeModeTabs()
     {
         return this.tabs;
+    }
+    
+    @Override
+    public ComponentRegistry components()
+    {
+        return this.components;
     }
 }
