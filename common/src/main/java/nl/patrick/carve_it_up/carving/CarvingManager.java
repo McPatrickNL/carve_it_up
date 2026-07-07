@@ -1,6 +1,6 @@
 package nl.patrick.carve_it_up.carving;
 
-import net.minecraft.client.renderer.chunk.RenderChunkRegion;
+//import net.minecraft.client.renderer.chunk.RenderChunkRegion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -40,14 +40,15 @@ public class CarvingManager
             var chunk = world.getChunkAt(pos);
             return ((IChunkCarvedDataAccessor) chunk).carveitup$getCarvedData();
         }
-        
-        if (level instanceof RenderChunkRegion renderRegion) {
-            Level world = ((RenderChunkRegionAccessor) renderRegion).carveitup$getLevel();
-            if (world != null) {
-                var chunk = world.getChunkAt(pos);
-                return ((IChunkCarvedDataAccessor) chunk).carveitup$getCarvedData();
-            }
-        }
+
+// todo re-introduce this, along with the commented import.
+//        if (level instanceof RenderChunkRegion renderRegion) {
+//            Level world = ((RenderChunkRegionAccessor) renderRegion).carveitup$getLevel();
+//            if (world != null) {
+//                var chunk = world.getChunkAt(pos);
+//                return ((IChunkCarvedDataAccessor) chunk).carveitup$getCarvedData();
+//            }
+//        }
         return null;
     }
 }

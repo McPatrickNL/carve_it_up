@@ -12,7 +12,8 @@ base {
 neoForge {
     // Look for versions on https://projects.neoforged.net/neoforged/neoform
     // This turns on ModDevGradle's official "Vanilla-Mode" for cross-loader subprojects!
-    neoFormVersion = "1.21-20240613.152323" // Replace with your version's matching NeoForm string
+    neoFormVersion = "26.1-1"
+//    neoFormVersion = "26.1.0.19-beta"
 
     // Optional: You can still generate IDE runs for testing plain vanilla right from common
     runs {
@@ -24,7 +25,6 @@ neoForge {
 dependencies {
     // This gives access to @Mixin, @Inject, @At, etc.
     compileOnly 'org.spongepowered:mixin:0.8.5'
-//    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // Ensure to also include the primary Minecraft/loader dependencies
 }

@@ -20,16 +20,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
 // File Location from project root:
-// common/src/main/java/nl/patrick/carve_it_up/carving/MixinBlockRenderDispatcher.java
+// common/src/main/java/nl/patrick/carve_it_up/mixin/BlockRenderDispatcherMixin.java
 
 // When adding new mixins, add them to resources/carve_it_up.mixins.json as well.
 @Mixin(BlockRenderDispatcher.class)
-public class MixinBlockRenderDispatcher {
-    
+public class BlockRenderDispatcherMixin
+{
     @Inject(
-            method = "renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;)V",
-            at = @At("HEAD"),
-            cancellable = true
+//        method = "renderBatched(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;)V",
+        method = "renderBatched",
+        at = @At("HEAD"),
+        cancellable = true
     )
     private void interceptRender(BlockState state, BlockPos pos, BlockAndTintGetter level, PoseStack poseStack, VertexConsumer consumer, boolean checkSides, RandomSource random, CallbackInfo ci) {
         

@@ -2,8 +2,9 @@
     "required": true,
     "minVersion": "0.8.5",
     "package": "nl.patrick.carve_it_up.mixin",
-    "mixins": ["BlockStateBaseMixin", "LevelChunkMixin", "MixinBlockRenderDispatcher"],
+    "refmap": "carve_it_up-refmap.json",
+    "mixins": ["BlockStateBaseMixin", "LevelChunkMixin"],
     "injectors": {
         "defaultRequire": 1
-    }, "client": ["RenderChunkRegionAccessor"]
+    }, "client": ["RenderChunkRegionAccessor", "BlockRenderDispatcherMixin"]
 }

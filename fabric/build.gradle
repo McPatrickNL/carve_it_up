@@ -18,3 +18,10 @@ dependencies {
 
     implementation project(":common")
 }
+
+processResources {
+    inputs.property "version", mod_version
+    filesMatching("fabric.mod.json") {
+        expand "version": mod_version
+    }
+}

@@ -4,7 +4,7 @@ package nl.patrick.carve_it_up.carving;
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvedData.java
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+//import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,10 +22,10 @@ public class CarvedData
     private       VoxelShape       visualShape;
     private       VoxelShape       collisionShape;
     private       VoxelShape       interactionShape;
-    private       ResourceLocation customModel;
+//    private       ResourceLocation customModel;
     
     // todo should I keep originalCollisionContext as is, or should I always use CollisionContext.empty()?
-    public CarvedData(BlockState mainBlockState, Level level, BlockPos blockPos, CollisionContext originalCollisionContext, ResourceLocation customModel)
+    public CarvedData(BlockState mainBlockState, Level level, BlockPos blockPos, CollisionContext originalCollisionContext/* , ResourceLocation customModel */)
     {
         this.mainBlockState   = mainBlockState;
         this.mainBlock        = mainBlockState.getBlock();
@@ -33,7 +33,7 @@ public class CarvedData
         this.visualShape      = mainBlockState.getVisualShape(level, blockPos, originalCollisionContext);
         this.collisionShape   = mainBlockState.getCollisionShape(level, blockPos);
         this.interactionShape = mainBlockState.getInteractionShape(level, blockPos);
-        this.customModel      = customModel;
+//        this.customModel      = customModel;
     }
     
     public BlockState getMainBlockState()      {return mainBlockState;}
@@ -42,12 +42,12 @@ public class CarvedData
     public VoxelShape getVisualShape()         {return visualShape;}
     public VoxelShape getCollisionShape()      {return collisionShape;}
     public VoxelShape getInteractionShape()    {return interactionShape;}
-    public ResourceLocation getCustomModel()   { return customModel; }
+//    public ResourceLocation getCustomModel()   { return customModel; }
     
     public void setVisualShape(VoxelShape visualShape)           {this.visualShape = visualShape;}
     public void setCollisionShape(VoxelShape collisionShape)     {this.collisionShape = collisionShape;}
     public void setInteractionShape(VoxelShape interactionShape) {this.interactionShape = interactionShape;}
-    public void setCustomModel(ResourceLocation customModel)     { this.customModel = customModel; }
+//    public void setCustomModel(ResourceLocation customModel)     { this.customModel = customModel; }
     
     public boolean hasBlock(Block block)   {return blocks.contains(block);}
     

@@ -22,7 +22,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class BlockStateBaseMixin
 {
     // 1. PHYSICAL COLLISION
-    @Inject(method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("HEAD"), cancellable = true)
+    @Inject(
+//        method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        method = "getCollisionShape*",
+        at = @At("HEAD"),
+        cancellable = true)
     private void interceptCollisionShape(BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
         CarvedData data = CarvingManager.getCarvedData(level, pos);
         if (data != null) {
@@ -31,7 +35,11 @@ public class BlockStateBaseMixin
     }
     
     // 2. SELECTION WIREFRAME / HITBOX OUTLINE
-    @Inject(method = "getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("HEAD"), cancellable = true)
+    @Inject(
+//        method = "getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        method = "getShape*",
+        at = @At("HEAD"),
+        cancellable = true)
     private void interceptShape(BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
         CarvedData data = CarvingManager.getCarvedData(level, pos);
         if (data != null) {
@@ -40,7 +48,11 @@ public class BlockStateBaseMixin
     }
     
     // 3. LIGHT / PATHFINDING VISUAL SHAPE
-    @Inject(method = "getVisualShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("HEAD"), cancellable = true)
+    @Inject(
+//        method = "getVisualShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        method = "getVisualShape",
+        at = @At("HEAD"),
+        cancellable = true)
     private void interceptVisualShape(BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
         CarvedData data = CarvingManager.getCarvedData(level, pos);
         if (data != null) {
@@ -49,7 +61,11 @@ public class BlockStateBaseMixin
     }
     
     // 4. FACE CULLING / OCCLUSION (Prevents see-through x-ray holes in adjacent blocks)
-    @Inject(method = "getFaceOcclusionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At("HEAD"), cancellable = true)
+    @Inject(
+//        method = "getFaceOcclusionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        method = "getFaceOcclusionShape",
+        at = @At("HEAD"),
+        cancellable = true)
     private void interceptFaceOcclusionShape(BlockGetter level, BlockPos pos, Direction direction, CallbackInfoReturnable<VoxelShape> cir) {
         CarvedData data = CarvingManager.getCarvedData(level, pos);
         if (data != null) {

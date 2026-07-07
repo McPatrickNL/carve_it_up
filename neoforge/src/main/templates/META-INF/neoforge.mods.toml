@@ -43,6 +43,10 @@ description='''
 Create your own blocks by carving and sculpting Minecraft blocks.
 '''
 
+# Mixins
+[[mixins]]
+config="carve_it_up.mixins.json"
+
 # The [[accessTransformers]] block allows you to declare where your AT file is.
 # If this block is omitted, a fallback attempt will be made to load an AT from META-INF/accesstransformer.cfg
 #[[accessTransformers]]
