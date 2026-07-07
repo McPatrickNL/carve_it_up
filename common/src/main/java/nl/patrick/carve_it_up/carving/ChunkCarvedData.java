@@ -1,9 +1,12 @@
 package nl.patrick.carve_it_up.carving;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
 
 // File Location from project root:
@@ -13,7 +16,8 @@ import java.util.Map;
 public class ChunkCarvedData
 {
     // A sparse map: only entries for blocks that are actually carved.
-    private final Map<BlockPos, CarvedData> carvedBlocks = new HashMap<>();
+//    private final Map<BlockPos, CarvedData> carvedBlocks = new HashMap<>();
+    private final Map<BlockPos, CarvedDataMapSet> carvedBlocks = new HashMap<>();
     
     /*
      * Not directly using isEmpty() here because this call gets done many times and a stored Boolean is faster than
@@ -22,9 +26,10 @@ public class ChunkCarvedData
      */
     private boolean hasCarvedBlocks = false;
     
-    public void addCarvedData(BlockPos pos, CarvedData data) {
-        this.carvedBlocks.put(pos.immutable(), data);
+    public void addCarvedData(Level level, BlockPos pos, CarvedData data) {
+        this.carvedBlocks.put(pos.immutable(), new CarvedDataMapSet(level, data));
         this.hasCarvedBlocks = true;
+        LOGGER.info("Carved data added to " + pos.toShortString());
     }
     
     public void removeCarvedData(BlockPos pos) {
@@ -32,11 +37,29 @@ public class ChunkCarvedData
         if (carvedBlocks.isEmpty())
         {
             hasCarvedBlocks = false;
+            LOGGER.info("Carved data removed from " + pos.toShortString());
         }
     }
     
+    /**
+     * Resets the entire container back to an empty state.
+     */
+    public void clear() {
+        this.carvedBlocks.clear();
+        this.hasCarvedBlocks = false;
+        LOGGER.info("All carved data wiped");
+    }
+    
     public CarvedData getCarvedData(BlockPos pos) {
-        return this.carvedBlocks.get(pos);
+        if (!isPositionCarved(pos)){
+            return null;
+        }
+        CarvedDataMapSet mapSet = this.carvedBlocks.get(pos);
+        return mapSet != null ? mapSet.getCarvedData() : null;
+    }
+    
+    public Map<BlockPos, CarvedDataMapSet> getCarvedBlocks(){
+        return carvedBlocks;
     }
     
     public boolean isCarved(BlockPos pos) {
@@ -46,5 +69,9 @@ public class ChunkCarvedData
     public boolean hasCarvedData()
     {
         return hasCarvedBlocks;
+    }
+    
+    public boolean isPositionCarved(BlockPos pos) {
+        return this.hasCarvedBlocks && this.carvedBlocks.containsKey(pos);
     }
 }
