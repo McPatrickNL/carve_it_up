@@ -4,7 +4,7 @@ package nl.patrick.carve_it_up.carving;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import nl.patrick.carve_it_up.mixin.RenderChunkRegionAccessor;
+//import nl.patrick.carve_it_up.mixin.RenderChunkRegionAccessor;
 
 
 // File Location from project root:

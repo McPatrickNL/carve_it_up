@@ -6,5 +6,5 @@
     "mixins": ["BlockStateBaseMixin", "LevelChunkMixin"],
     "injectors": {
         "defaultRequire": 1
-    }, "client": ["RenderChunkRegionAccessor", "BlockRenderDispatcherMixin"]
+    }, "client": ["ModelBlockRendererMixin"]
 }

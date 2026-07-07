@@ -3,6 +3,7 @@ package nl.patrick.carve_it_up.carving;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvedData.java
 
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 //import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -16,7 +17,9 @@ import java.util.List;
 
 public class CarvedData
 {
-    private final BlockState       mainBlockState;
+    private final BlockState       originalBlockState;
+    private final BlockStateModel  originalBlockStateModel;
+    private       BlockStateModel  newBlockStateModel;
     private final Block            mainBlock;
     private final List<Block>      blocks = new ArrayList<>();
     private       VoxelShape       visualShape;
@@ -24,19 +27,22 @@ public class CarvedData
     private       VoxelShape       interactionShape;
 //    private       ResourceLocation customModel;
     
-    // todo should I keep originalCollisionContext as is, or should I always use CollisionContext.empty()?
-    public CarvedData(BlockState mainBlockState, Level level, BlockPos blockPos, CollisionContext originalCollisionContext/* , ResourceLocation customModel */)
+    public CarvedData(BlockState originalBlockState, BlockStateModel originalBlockStateModel, Level level, BlockPos blockPos, CollisionContext originalCollisionContext/* , ResourceLocation customModel */)
     {
-        this.mainBlockState   = mainBlockState;
-        this.mainBlock        = mainBlockState.getBlock();
+        this.originalBlockState      = originalBlockState;
+        this.originalBlockStateModel = originalBlockStateModel;
+        this.newBlockStateModel      = originalBlockStateModel;
+        this.mainBlock               = originalBlockState.getBlock();
         this.blocks.add(mainBlock);
-        this.visualShape      = mainBlockState.getVisualShape(level, blockPos, originalCollisionContext);
-        this.collisionShape   = mainBlockState.getCollisionShape(level, blockPos);
-        this.interactionShape = mainBlockState.getInteractionShape(level, blockPos);
+        this.visualShape      = originalBlockState.getVisualShape(level, blockPos, originalCollisionContext);
+        this.collisionShape   = originalBlockState.getCollisionShape(level, blockPos);
+        this.interactionShape = originalBlockState.getInteractionShape(level, blockPos);
 //        this.customModel      = customModel;
     }
     
-    public BlockState getMainBlockState()      {return mainBlockState;}
+    public BlockState getOriginalBlockState()           {return originalBlockState;}
+    public BlockStateModel getOriginalBlockStateModel() {return originalBlockStateModel;}
+    public BlockStateModel getNewBlockStateModel()      {return newBlockStateModel;}
     public Block getMainBlock()                {return mainBlock;}
     public List<Block> getBlocks()             {return blocks;}
     public VoxelShape getVisualShape()         {return visualShape;}
@@ -44,6 +50,7 @@ public class CarvedData
     public VoxelShape getInteractionShape()    {return interactionShape;}
 //    public ResourceLocation getCustomModel()   { return customModel; }
     
+    public void setNewBlockStateModel(BlockStateModel newModel)  {this.newBlockStateModel = newModel;}
     public void setVisualShape(VoxelShape visualShape)           {this.visualShape = visualShape;}
     public void setCollisionShape(VoxelShape collisionShape)     {this.collisionShape = collisionShape;}
     public void setInteractionShape(VoxelShape interactionShape) {this.interactionShape = interactionShape;}

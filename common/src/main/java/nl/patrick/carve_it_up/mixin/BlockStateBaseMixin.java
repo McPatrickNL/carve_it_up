@@ -61,16 +61,16 @@ public class BlockStateBaseMixin
     }
     
     // 4. FACE CULLING / OCCLUSION (Prevents see-through x-ray holes in adjacent blocks)
-    @Inject(
-//        method = "getFaceOcclusionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
-        method = "getFaceOcclusionShape",
-        at = @At("HEAD"),
-        cancellable = true)
-    private void interceptFaceOcclusionShape(BlockGetter level, BlockPos pos, Direction direction, CallbackInfoReturnable<VoxelShape> cir) {
-        CarvedData data = CarvingManager.getCarvedData(level, pos);
-        if (data != null) {
-            // Evaluates the exact 2D footprint slice of your custom 3D VoxelShape on that face
-            cir.setReturnValue(data.getCollisionShape().getFaceShape(direction));
-        }
-    }
+//    @Inject(
+////        method = "getFaceOcclusionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+//        method = "getFaceOcclusionShape",
+//        at = @At("HEAD"),
+//        cancellable = true)
+//    private void interceptFaceOcclusionShape(Direction direction, CallbackInfoReturnable<VoxelShape> cir) {
+//        CarvedData data = CarvingManager.getCarvedData(level, pos);
+//        if (data != null) {
+//            // Evaluates the exact 2D footprint slice of your custom 3D VoxelShape on that face
+//            cir.setReturnValue(data.getCollisionShape().getFaceShape(direction));
+//        }
+//    }
 }
