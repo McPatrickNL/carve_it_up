@@ -16,11 +16,10 @@ public class ClientCarvingCache
     
     
     // Fetching the Compiled 26.1 BlockStateModel for a given state:
-    BlockStateModel vanillaModel = Minecraft.getInstance()
-                                        .getModelManager()
-                                        .getBlockStateModelSet()
-                                        .get(blockState);
-    
+    // BlockStateModel vanillaModel = Minecraft.getInstance()
+    //                                     .getModelManager()
+    //                                     .getBlockStateModelSet()
+    //                                     .get(blockState);
     
     public static BlockStateModel getOrCompute(BlockPos pos, int serverVersion, CarvedData definitions) {
         CacheEntry entry = MODEL_CACHE.get(pos);
@@ -31,7 +30,7 @@ public class ClientCarvingCache
         }
         
         // Cache miss: Build your modern 26.1 BlockStateModel here
-        BlockStateModel newlyBuiltModel = ModelBakeryUtil.buildStateModel(definitions);
+        BlockStateModel newlyBuiltModel = CarvingModelFactory.bakeCustomModel(definitions);
         
         MODEL_CACHE.put(pos.immutable(), new CacheEntry(serverVersion, newlyBuiltModel));
         return newlyBuiltModel;

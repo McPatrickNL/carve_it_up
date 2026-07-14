@@ -27,4 +27,4 @@ dependencies {
     compileOnly 'org.spongepowered:mixin:0.8.5'
 
     // Ensure to also include the primary Minecraft/loader dependencies
-}
+}
