@@ -13,12 +13,23 @@ import nl.patrick.carve_it_up.registry.NeoForgeItemRegistry;
 import nl.patrick.carve_it_up.tab.ModCreativeModeTabs;
 
 
-
 // File Location from project root:
 // neoforge/src/main/java/nl/patrick/carve_it_up/CarveItUpNeoForge.java
 @Mod(CommonMod.MOD_ID)
 public class NeoForgeMod
 {
+    
+    // todo add something like this to prevent permanent carving locks:
+    //  Also for Fabric...
+//    @SubscribeEvent
+//    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+//        UUID playerUuid = event.getEntity().getUUID();
+//
+//        // Sweeps the lock map and removes any active locks held by this player
+//        ACTIVE_LOCKS.values().removeIf(uuid -> uuid.equals(playerUuid));
+//    }
+    
+    
     public NeoForgeMod(IEventBus modEventBus, ModContainer modContainer)
     {
         // 1. Tell NeoForge to watch our registries

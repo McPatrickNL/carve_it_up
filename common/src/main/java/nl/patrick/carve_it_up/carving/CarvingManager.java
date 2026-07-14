@@ -4,12 +4,16 @@ package nl.patrick.carve_it_up.carving;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
@@ -19,21 +23,25 @@ import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
 public class CarvingManager
 {
-    // Tracks chunks that have active carvings.
-    // WeakHashMap automatically drops references when chunks unload, preventing memory leaks!
     private static final Map<LevelChunk, Boolean> TRACKED_CHUNKS = new WeakHashMap<>();
+    private static final Map<BlockPos, UUID>      ACTIVE_LOCKS   = new ConcurrentHashMap<>();
     
     /**
      * Light-weight, high-performance check to see if a coordinate has any carving data.
      * Perfect for rendering and physics hot-paths.
      */
     public static boolean isCarved(BlockGetter level, BlockPos pos) {
-//        LOGGER.info("Asking if this block is carved " + pos.toShortString());
-        ChunkCarvedData chunkData = getChunkCarvedData(level, pos);// If the entire chunk contains zero carvings, exit immediately!
+        ChunkCarvedData chunkData = getChunkCarvedData(level, pos);
         if (chunkData == null || !chunkData.hasCarvedData()) {
             return false;
         }
-        return chunkData.hasCarvedData() && chunkData.isCarved(pos);
+        return chunkData.isPositionCarved(pos);
+//        return chunkData.hasCarvedData() && chunkData.isCarved(pos);
+    }
+    
+    public static boolean isLockedBySomeoneElse(BlockPos pos, Player player) {
+        UUID owner = ACTIVE_LOCKS.get(pos);
+        return owner != null && !owner.equals(player.getUUID());
     }
     
     /**

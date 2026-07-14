@@ -3,6 +3,7 @@ package nl.patrick.carve_it_up.item;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/item/CarvingToolItem.java
 
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -12,6 +13,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import nl.patrick.carve_it_up.carving.CarvedData;
 import nl.patrick.carve_it_up.carving.CarvingManager;
+
+import java.util.UUID;
 
 import static nl.patrick.carve_it_up.carving.CarvingManager.debugWipeAllLoadedData;
 
@@ -24,17 +27,22 @@ public class CarvingToolItem extends Item
     
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        Level    level = context.getLevel();
-        BlockPos pos   = context.getClickedPos();
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
         BlockState originalState = level.getBlockState(pos);
-        if (originalState.isAir()) {
+        
+        // Prevent carving air, liquids, or unbreakable blocks (like bedrock)
+        if (originalState.isAir() || !originalState.getFluidState().isEmpty() || originalState.getDestroySpeed(level, pos) < 0.0F) {
             return InteractionResult.FAIL;
         }
+        
+        // TODO: Support fragile/non-solid blocks eventually (grass, crops, signs).
+        // Currently disabled to prevent physics breaking until we implement custom ticking models.
         
         // 0. CREATIVE + SNEAK + RIGHT CLICK = WIPE ALL DATA (TESTING)
         if (context.getPlayer() != null && context.getPlayer().isCrouching() && context.getPlayer().isCreative()) {
             debugWipeAllLoadedData();
-            // NOTE TO SELF: no block updates are being send here
+            level.sendBlockUpdated(pos, originalState, originalState, 3);
             return InteractionResult.SUCCESS;
         }
         
@@ -42,8 +50,6 @@ public class CarvingToolItem extends Item
         if (context.getPlayer() != null && context.getPlayer().isCrouching()) {
             if (CarvingManager.isCarved(level, pos)) {
                 CarvingManager.removeCarvedData(level, pos);
-                
-                // Force a chunk rerender so the block instantly snaps back visually
                 level.sendBlockUpdated(pos, originalState, originalState, 3);
                 return InteractionResult.SUCCESS;
             }
@@ -52,25 +58,30 @@ public class CarvingToolItem extends Item
         
         // 2. NORMAL RIGHT CLICK = ADD DATA
         if (!CarvingManager.isCarved(level, pos)) {
-            // todo pass null for the model for now, this is going to be where the actual magic starts to happen.
-            // todo when adding data to for example grass, it breaks the block and it can't be interacted with until relog.
-            //  The same thing probably applies to wheat, sugar cane, maybe even signs or chests etc.
+            // Retrieve vanilla model safely
+            net.minecraft.client.renderer.block.dispatch.BlockStateModel vanillaModel = net.minecraft.client.Minecraft.getInstance()
+                                                                                                                      .getModelManager()
+                                                                                                                      .getBlockStateModelSet()
+                                                                                                                      .get(originalState);
+            
+            UUID owner      = context.getPlayer() != null ? context.getPlayer().getUUID() : UUID.randomUUID();
+            int  resolution = 16; // TODO: Hook into your server config value here!
+            
             CarvedData data = new CarvedData(
                     originalState,
-                    null,
+                    vanillaModel,
                     level,
                     pos,
-                    CollisionContext.of(context.getPlayer())
+                    CollisionContext.of(context.getPlayer()),
+                    owner,
+                    resolution
             );
             
             CarvingManager.setCarvedData(level, pos, data);
-            
-            // Force the engine to re-bake this block's section mesh immediately
             level.sendBlockUpdated(pos, originalState, originalState, 3);
             return InteractionResult.SUCCESS;
         }
         
         return InteractionResult.PASS;
-//        return InteractionResult.CONSUME;
     }
 }
