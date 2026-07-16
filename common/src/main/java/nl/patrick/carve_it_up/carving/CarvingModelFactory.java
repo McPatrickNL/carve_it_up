@@ -28,16 +28,40 @@ public class CarvingModelFactory {
     // --- ENUMS & RESULT CONTAINER ---
 
     public enum CarvingMode {
-        REMOVE,
-        ADD,
-        REPLACE
+        REMOVE("Remove"),
+        ADD("Add"),
+        REPLACE("Replace");
+        
+        private final String name;
+        
+        CarvingMode(String name)
+        {
+            this.name = name;
+        }
+        
+        public String getName()
+        {
+            return this.name;
+        }
     }
 
     public enum CarvingPattern {
-        VOXEL,
-        MULTI_VOXEL,
-        LINE,
-        FACE
+        VOXEL("One voxel"),
+        MULTI_VOXEL("Multi voxel"),
+        LINE("Line"),
+        FACE("Face");
+        
+        private final String name;
+        
+        CarvingPattern(String name)
+        {
+            this.name = name;
+        }
+        
+        public String getName()
+        {
+            return this.name;
+        }
     }
 
     public static class CarvingResult {
