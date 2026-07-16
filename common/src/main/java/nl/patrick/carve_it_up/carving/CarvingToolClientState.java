@@ -4,9 +4,10 @@ package nl.patrick.carve_it_up.carving;
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvingToolClientState.java
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.Window;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -18,6 +19,9 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
 import java.util.List;
+
+import static nl.patrick.carve_it_up.carving.CarvingKeyBinds.CATEGORY_KEY;
+import static nl.patrick.carve_it_up.carving.CarvingKeyBinds.SUBMENU_KEY;
 
 
 public class CarvingToolClientState
@@ -40,6 +44,14 @@ public class CarvingToolClientState
         if (stack.isEmpty()) return false;
         
         return stack.getItem() instanceof CarvingToolItem;
+    }
+    
+    public static boolean isCategoryKeyPressed() {
+        return CATEGORY_KEY.isDown();
+    }
+    
+    public static boolean isSubmenuKeyPressed() {
+        return SUBMENU_KEY.isDown();
     }
     
     /**
@@ -67,7 +79,7 @@ public class CarvingToolClientState
             BlockPos pos = ((BlockHitResult) mc.hitResult).getBlockPos();
             return mc.level.getBlockState(pos).getBlock();
         }
-        return Blocks.STONE; // todo make sure this hardcoded stone block doesn't cause any weird behaviour or ghost stone blocks.
+        return Blocks.STONE;
     }
     
     public static CarvingModelFactory.CarvingMode getSelectedMode() {
@@ -89,24 +101,20 @@ public class CarvingToolClientState
             return false;
         }
         
-        Minecraft mc     = Minecraft.getInstance();
-        Window    window = mc.getWindow();
+        boolean categoryPressed = isCategoryKeyPressed();
+        boolean submenuPressed = isSubmenuKeyPressed();
         
-        // Mapping-independent cross-platform modifier key checking
-        boolean ctrl = InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
-        boolean alt = InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_ALT) || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_ALT);
-        
-        if (!ctrl && !alt) {
+        if (!categoryPressed && !submenuPressed) {
             return false;
         }
         
         int direction = scrollAmount > 0 ? -1 : 1;
         
-        if (ctrl) {
+        if (categoryPressed) {
             activeCategory = (activeCategory + direction + 3) % 3;
             return true;
         } else {
-            direction = -direction; // invert for sub-menu
+            direction = -direction; // invert for sub menu
             if (activeCategory == 0) {
                 int total = CarvingModelFactory.CarvingMode.values().length;
                 activeModeIndex = (activeModeIndex + direction + total) % total;

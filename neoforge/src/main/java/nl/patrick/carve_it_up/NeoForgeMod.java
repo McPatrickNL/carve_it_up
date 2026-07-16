@@ -1,10 +1,13 @@
 package nl.patrick.carve_it_up;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import nl.patrick.carve_it_up.block.ModBlocks;
+import nl.patrick.carve_it_up.carving.CarvingKeyBinds;
 import nl.patrick.carve_it_up.item.ModItems;
 import nl.patrick.carve_it_up.registry.NeoForgeBlockRegistry;
 import nl.patrick.carve_it_up.registry.NeoForgeComponentRegistry;
@@ -18,6 +21,11 @@ import nl.patrick.carve_it_up.tab.ModCreativeModeTabs;
 @Mod(CommonMod.MOD_ID)
 public class NeoForgeMod
 {
+//    @SubscribeEvent
+//    public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+//        event.register(CarvingKeyBinds.CATEGORY_KEY);
+//        event.register(CarvingKeyBinds.SUBMENU_KEY);
+//    }
     
     // todo add something like this to prevent permanent carving locks:
     //  Also for Fabric...

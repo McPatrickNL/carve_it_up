@@ -10,5 +10,9 @@
   "carve_it_up.configuration.items": "Item List",
   "carve_it_up.configuration.logDirtBlock": "Log Dirt Block",
   "carve_it_up.configuration.magicNumberIntroduction": "Magic Number Text",
-  "carve_it_up.configuration.magicNumber": "Magic Number"
+  "carve_it_up.configuration.magicNumber": "Magic Number",
+
+  "key.category.carve_it_up.key.categories.carve_it_up": "Carve It Up",
+  "carve_it_up.key.category_key": "Scroll Carving Main Menu",
+  "carve_it_up.key.submenu_key": "Scroll Carving Sub Menu"
 }

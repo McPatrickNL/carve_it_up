@@ -1,6 +1,7 @@
 package nl.patrick.carve_it_up;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -10,6 +11,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import nl.patrick.carve_it_up.block.ModBlocks;
+import nl.patrick.carve_it_up.carving.CarvingKeyBinds;
 import nl.patrick.carve_it_up.component.ModComponents;
 import nl.patrick.carve_it_up.item.ModItems;
 
