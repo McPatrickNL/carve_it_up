@@ -79,7 +79,7 @@ public class CarvingToolClientState
             BlockPos pos = ((BlockHitResult) mc.hitResult).getBlockPos();
             return mc.level.getBlockState(pos).getBlock();
         }
-        return Blocks.STONE;
+        return Blocks.AIR;
     }
     
     public static CarvingModelFactory.CarvingMode getSelectedMode() {
