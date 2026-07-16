@@ -20,8 +20,11 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", mod_version
+    var props = [
+            "version": mod_version
+    ]
+    inputs.properties props
     filesMatching("fabric.mod.json") {
-        expand "version": mod_version
+        expand props
     }
 }
