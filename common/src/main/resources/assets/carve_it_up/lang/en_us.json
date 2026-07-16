@@ -1,9 +1,4 @@
 {
-  "itemGroup.carve_it_up.carve_it_up_tab": "Carve It Up Mod Tab",
-  "itemGroup.carve_it_up": "Carve It Up Mod Tab",
-  "block.carve_it_up.example_block": "Example Block",
-  "item.carve_it_up.example_item": "Example Item",
-
   "carve_it_up.configuration.title": "Carve It Up Configs",
   "carve_it_up.configuration.section.carve_it_up.common.toml": "Carve It Up Configs",
   "carve_it_up.configuration.section.carve_it_up.common.toml.title": "Carve It Up Configs",
@@ -12,7 +7,15 @@
   "carve_it_up.configuration.magicNumberIntroduction": "Magic Number Text",
   "carve_it_up.configuration.magicNumber": "Magic Number",
 
-  "key.category.carve_it_up.key.categories.carve_it_up": "Carve It Up",
-  "carve_it_up.key.category_key": "Scroll Carving Main Menu",
-  "carve_it_up.key.submenu_key": "Scroll Carving Sub Menu"
+  "itemGroup.carve_it_up.carve_it_up_tab": "Carve It Up Tab",
+  "itemGroup.carve_it_up": "Carve It Up",
+
+  "block.carve_it_up.example_block": "Example Block",
+
+  "item.carve_it_up.example_item": "Example Item",
+  "item.carve_it_up.carving_tool": "Carving Tool",
+
+  "key.category.carve_it_up.carve_it_up": "Carve It Up",
+  "carve_it_up.key.category_key": "Category Selector",
+  "carve_it_up.key.submenu_key": "Submenu Selector"
 }

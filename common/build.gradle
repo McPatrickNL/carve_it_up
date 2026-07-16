@@ -3,6 +3,7 @@
 plugins {
     id 'java-library'
     id 'net.neoforged.moddev'
+    id 'net.fabricmc.fabric-loom-companion'
 }
 
 base {
@@ -27,4 +28,4 @@ dependencies {
     compileOnly 'org.spongepowered:mixin:0.8.5'
 
     // Ensure to also include the primary Minecraft/loader dependencies
-}
+}

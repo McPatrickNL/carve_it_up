@@ -6,6 +6,15 @@ plugins {
     id 'net.fabricmc.fabric-loom' // version '1.15-SNAPSHOT'
 }
 
+loom {
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet("main", ":common")
+        }
+    }
+}
+
 base {
     archivesName = "${mod_id}-fabric"
 }
