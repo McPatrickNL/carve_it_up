@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MouseHandlerMixin
 {
     @Inject(method = "onScroll", at = @At("HEAD"), cancellable = true)
-    private void onScroll(long window, double xoffset, double yoffset, CallbackInfo ci) {
+    private void onScroll(long handle, double xoffset, double yoffset, CallbackInfo ci) {
         // yoffset captures standard mouse wheel inputs
         if (CarvingToolClientState.handleScroll(yoffset)) {
             ci.cancel();

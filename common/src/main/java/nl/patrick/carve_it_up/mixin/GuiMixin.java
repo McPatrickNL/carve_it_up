@@ -17,6 +17,7 @@ import nl.patrick.carve_it_up.carving.CarvingToolClientState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -70,7 +71,7 @@ public abstract class GuiMixin
         boolean s1Active = (CarvingToolClientState.activeCategory == 0);
         int s1Bg = 0x80001530;
         int s1Border = s1Active ? 0xFF00A0FF : 0x800050A0;
-        drawBorderedRect(graphics, s1X, startY, slotSize, slotSize, s1Bg, s1Border);
+        carve_it_up$drawBorderedRect(graphics, s1X, startY, slotSize, slotSize, s1Bg, s1Border);
         
         String modeLabelStr = CarvingToolClientState.getSelectedMode().getName();
         Component modeLabel = Component.literal(modeLabelStr);
@@ -81,7 +82,7 @@ public abstract class GuiMixin
         boolean s2Active = (CarvingToolClientState.activeCategory == 1);
         int s2Bg = 0x80003015;
         int s2Border = s2Active ? 0xFF00FF50 : 0x8000A030;
-        drawBorderedRect(graphics, s2X, startY, slotSize, slotSize, s2Bg, s2Border);
+        carve_it_up$drawBorderedRect(graphics, s2X, startY, slotSize, slotSize, s2Bg, s2Border);
         
         String shapeLabelStr = CarvingToolClientState.getSelectedPattern().getName();
         Component shapeLabel = Component.literal(shapeLabelStr);
@@ -92,7 +93,7 @@ public abstract class GuiMixin
         boolean s3Active = (CarvingToolClientState.activeCategory == 2);
         int s3Bg = 0x80250035;
         int s3Border = s3Active ? 0xFFA000FF : 0x805000A0;
-        drawBorderedRect(graphics, s3X, startY, slotSize, slotSize, s3Bg, s3Border);
+        carve_it_up$drawBorderedRect(graphics, s3X, startY, slotSize, slotSize, s3Bg, s3Border);
         
         // Fetch blocks present in the targeted CarvedData
         List<Block> blocks = CarvingToolClientState.getTargetedBlocks();
@@ -117,7 +118,7 @@ public abstract class GuiMixin
         
         // Draw vanilla-like white selection frame over the active category slot
         int activeSlotX = startX + (CarvingToolClientState.activeCategory * (slotSize + spacing));
-        drawBorderedRect(graphics, activeSlotX - 1, startY - 1, slotSize + 2, slotSize + 2, 0x00000000, 0xFFFFFFFF);
+        carve_it_up$drawBorderedRect(graphics, activeSlotX - 1, startY - 1, slotSize + 2, slotSize + 2, 0x00000000, 0xFFFFFFFF);
         
         // --- SUBMENU RENDERING (EXTENDING UPWARDS ON SCROLL HIGHLIGHT) ---
         
@@ -132,7 +133,7 @@ public abstract class GuiMixin
                 boolean isCurrent = (CarvingToolClientState.activeModeIndex == i);
                 int bg = isCurrent ? 0xBF003060 : 0x80001530;
                 int border = isCurrent ? 0xFF00A0FF : 0x500050A0;
-                drawBorderedRect(graphics, subX, subY, subW, subH, bg, border);
+                carve_it_up$drawBorderedRect(graphics, subX, subY, subW, subH, bg, border);
                 
                 Component textComp = Component.literal(modes[i].name());
                 graphics.text(font, textComp, subX + subW / 2 - font.width(textComp) / 2, subY + 5, isCurrent ? 0xFFFFFF : 0xAAAAAA, false);
@@ -150,7 +151,7 @@ public abstract class GuiMixin
                 boolean isCurrent = (CarvingToolClientState.activePatternIndex == i);
                 int bg = isCurrent ? 0xBF006030 : 0x80003015;
                 int border = isCurrent ? 0xFF00FF50 : 0x5000A030;
-                drawBorderedRect(graphics, subX, subY, subW, subH, bg, border);
+                carve_it_up$drawBorderedRect(graphics, subX, subY, subW, subH, bg, border);
                 
                 Component textComp = Component.literal(patterns[i].name());
                 graphics.text(font, textComp, subX + subW / 2 - font.width(textComp) / 2, subY + 5, isCurrent ? 0xFFFFFF : 0xAAAAAA, false);
@@ -165,7 +166,7 @@ public abstract class GuiMixin
                     int subY = startY - 24;
                     int bg = 0xBF500080;
                     int border = 0xFFA000FF;
-                    drawBorderedRect(graphics, s3X, subY, slotSize, slotSize, bg, border);
+                    carve_it_up$drawBorderedRect(graphics, s3X, subY, slotSize, slotSize, bg, border);
                     ItemStack stack = new ItemStack(fallback);
                     if (!stack.isEmpty()) {
                         graphics.item(this.minecraft.player, stack, s3X + 3, subY + 3, 0);
@@ -178,7 +179,7 @@ public abstract class GuiMixin
                     boolean isCurrent = (CarvingToolClientState.activeMaterialIndex == i);
                     int bg = isCurrent ? 0xBF500080 : 0x80250035;
                     int border = isCurrent ? 0xFFA000FF : 0x505000A0;
-                    drawBorderedRect(graphics, s3X, subY, slotSize, slotSize, bg, border);
+                    carve_it_up$drawBorderedRect(graphics, s3X, subY, slotSize, slotSize, bg, border);
                     
                     ItemStack stack = new ItemStack(blocks.get(i));
                     if (!stack.isEmpty()) {
@@ -190,30 +191,12 @@ public abstract class GuiMixin
         }
     }
     
-    private void drawBorderedRect(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int bgColor, int borderColor) {
+    @Unique
+    private void carve_it_up$drawBorderedRect(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int bgColor, int borderColor) {
         graphics.fill(x, y, x + w, y + h, bgColor);
         graphics.fill(x, y, x + w, y + 1, borderColor);       // Top border
         graphics.fill(x, y + h - 1, x + w, y + h, borderColor); // Bottom border
         graphics.fill(x, y, x + 1, y + h, borderColor);       // Left border
         graphics.fill(x + w - 1, y, x + w, y + h, borderColor); // Right border
     }
-    
-//    private String getShortModeName(CarvingModelFactory.CarvingMode mode) {
-//        if (mode == null) return "?";
-//        return switch (mode) {
-//            case REMOVE -> "REM";
-//            case ADD -> "ADD";
-//            case REPLACE -> "REP";
-//        };
-//    }
-//
-//    private String getShortShapeName(CarvingModelFactory.CarvingPattern pattern) {
-//        if (pattern == null) return "?";
-//        return switch (pattern) {
-//            case VOXEL -> "VOX";
-//            case MULTI_VOXEL -> "MUL";
-//            case LINE -> "LIN";
-//            case FACE -> "FAC";
-//        };
-//    }
 }

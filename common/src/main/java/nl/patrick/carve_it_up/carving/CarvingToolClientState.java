@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import nl.patrick.carve_it_up.CommonMod;
+import nl.patrick.carve_it_up.item.CarvingToolItem;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
@@ -29,17 +31,15 @@ public class CarvingToolClientState
     
     /**
      * Checks if the player is holding the carving tool in their main hand.
-     * Uses reflective class name matching and fallback ID checking to remain fully robust.
      */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isHoldingCarvingTool() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return false;
         ItemStack stack = mc.player.getMainHandItem();
         if (stack.isEmpty()) return false;
         
-        String className = stack.getItem().getClass().getSimpleName();
-        String registryName = stack.getItem().toString();
-        return className.contains("CarvingTool") || registryName.contains("carving_tool");
+        return stack.getItem() instanceof CarvingToolItem;
     }
     
     /**
@@ -106,7 +106,7 @@ public class CarvingToolClientState
             activeCategory = (activeCategory + direction + 3) % 3;
             return true;
         } else {
-            direction = -direction; // invert for sub menu
+            direction = -direction; // invert for sub-menu
             if (activeCategory == 0) {
                 int total = CarvingModelFactory.CarvingMode.values().length;
                 activeModeIndex = (activeModeIndex + direction + total) % total;
