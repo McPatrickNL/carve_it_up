@@ -6,13 +6,14 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+
 
 import java.util.*;
 
@@ -26,44 +27,7 @@ public class CarvingModelFactory {
     public static boolean skipOtherPlayerCarvings = false;
 
     // --- ENUMS & RESULT CONTAINER ---
-
-    public enum CarvingMode {
-        REMOVE("Remove"),
-        ADD("Add"),
-        REPLACE("Replace");
-        
-        private final String name;
-        
-        CarvingMode(String name)
-        {
-            this.name = name;
-        }
-        
-        public String getName()
-        {
-            return this.name;
-        }
-    }
-
-    public enum CarvingPattern {
-        VOXEL("One voxel"),
-        MULTI_VOXEL("Multi voxel"),
-        LINE("Line"),
-        FACE("Face");
-        
-        private final String name;
-        
-        CarvingPattern(String name)
-        {
-            this.name = name;
-        }
-        
-        public String getName()
-        {
-            return this.name;
-        }
-    }
-
+    
     public static class CarvingResult {
         private final int voxelsModified;
         private final List<Block> depletedMaterials;

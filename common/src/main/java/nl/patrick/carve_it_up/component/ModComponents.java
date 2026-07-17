@@ -20,12 +20,6 @@ import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
 public class ModComponents
 {
-//    public static final RegistryObject<DataComponentType<MyCustomData>> MY_COMPONENT =
-//            Services.REGISTRY.components().register("my_component", builder -> builder
-//                                                            .persistent(MyCustomData.CODEC)
-//                                                            .networkSynchronized(MyCustomData.STREAM_CODEC)
-//                                                   );
-    
     public static final RegistryObject<DataComponentType<MyCustomData>> MY_COMPONENT =
             Services.REGISTRY.components().register("my_component", (DataComponentType.Builder<MyCustomData> builder) -> builder
                                                             .persistent(MyCustomData.CODEC)

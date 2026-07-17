@@ -3,19 +3,14 @@ package nl.patrick.carve_it_up.carving;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvingToolClientState.java
 
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import nl.patrick.carve_it_up.CommonMod;
 import nl.patrick.carve_it_up.item.CarvingToolItem;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
 import java.util.List;
@@ -82,13 +77,13 @@ public class CarvingToolClientState
         return Blocks.AIR;
     }
     
-    public static CarvingModelFactory.CarvingMode getSelectedMode() {
-        CarvingModelFactory.CarvingMode[] modes = CarvingModelFactory.CarvingMode.values();
+    public static CarvingMode getSelectedMode() {
+        CarvingMode[] modes = CarvingMode.values();
         return modes[Math.abs(activeModeIndex % modes.length)];
     }
     
-    public static CarvingModelFactory.CarvingPattern getSelectedPattern() {
-        CarvingModelFactory.CarvingPattern[] patterns = CarvingModelFactory.CarvingPattern.values();
+    public static CarvingPattern getSelectedPattern() {
+        CarvingPattern[] patterns = CarvingPattern.values();
         return patterns[Math.abs(activePatternIndex % patterns.length)];
     }
     
@@ -116,10 +111,10 @@ public class CarvingToolClientState
         } else {
             direction = -direction; // invert for sub menu
             if (activeCategory == 0) {
-                int total = CarvingModelFactory.CarvingMode.values().length;
+                int total = CarvingMode.values().length;
                 activeModeIndex = (activeModeIndex + direction + total) % total;
             } else if (activeCategory == 1) {
-                int total = CarvingModelFactory.CarvingPattern.values().length;
+                int total = CarvingPattern.values().length;
                 activePatternIndex = (activePatternIndex + direction + total) % total;
             } else if (activeCategory == 2) {
                 List<Block> targetedBlocks = getTargetedBlocks();
