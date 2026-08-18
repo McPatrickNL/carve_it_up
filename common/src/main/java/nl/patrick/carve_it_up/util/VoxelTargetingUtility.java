@@ -36,7 +36,6 @@ public class VoxelTargetingUtility {
      * @param reachDistanceInBlocks Maximum reach distance in blocks.
      * @return BlockHitResult detailing hit point, hit face, and targeted BlockPos.
      */
-    // NewStart Raycast logic to target blocks based on player view
     public static BlockHitResult performBlockRaycast(Level levelWorld, Player playerEntity, double reachDistanceInBlocks) {
         // Retrieve origin vector at player eye height
         Vec3 eyePositionVector = playerEntity.getEyePosition(1.0F);
@@ -45,11 +44,13 @@ public class VoxelTargetingUtility {
         Vec3 viewDirectionVector = playerEntity.getViewVector(1.0F);
         
         // Calculate ray end point by extending along look vector by reach distance
+        // NewStart Fixed undefined "reachDirectionVector" symbol - was a typo causing a compile error, now correctly uses reachDistanceInBlocks on all three axes
         Vec3 endRaycastVector = eyePositionVector.add(
             viewDirectionVector.x * reachDistanceInBlocks,
-            viewDirectionVector.y * reachDirectionVector.y,
+            viewDirectionVector.y * reachDistanceInBlocks,
             viewDirectionVector.z * reachDistanceInBlocks
                                                      );
+        // NewEnd
         
         // Build clip context using block outline shapes and ignoring fluid interaction
         ClipContext raycastContext = new ClipContext(
@@ -63,7 +64,6 @@ public class VoxelTargetingUtility {
         // Future Cross-check context requirements if liquid-carving features are added.
         return levelWorld.clip(raycastContext);
     }
-    // NewEnd
     
     /**
      * Converts a BlockHitResult into exact 16x16x16 sub-voxel grid coordinates.
@@ -71,7 +71,6 @@ public class VoxelTargetingUtility {
      * @param blockHitResult The raycast result from performing a block hit test.
      * @return VoxelCoordinates instance with sub-voxel indices, or null if no block was struck.
      */
-    // NewStart Sub-voxel extraction algorithm from world hit vector
     public static VoxelCoordinates extractTargetedVoxel(BlockHitResult blockHitResult) {
         // Check if hit result exists and struck a valid block
         if (blockHitResult == null || blockHitResult.getType() == HitResult.Type.MISS) {
@@ -104,5 +103,4 @@ public class VoxelTargetingUtility {
         
         return new VoxelCoordinates(calculatedVoxelX, calculatedVoxelY, calculatedVoxelZ);
     }
-    // NewEnd
 }
