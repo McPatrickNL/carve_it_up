@@ -16,6 +16,7 @@ public class ModItems
     
     public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", Item::new);
     public static final RegistryObject<Item> CARVING_TOOL = ITEMS.register("carving_tool", CarvingToolItem::new);
+    public static final RegistryObject<Item> IRON_CARVING_TOOL = ITEMS.register("iron_carving_tool", CarvingToolItem::new);
     
     public static void init(){
         LOGGER.info("Registering Items for Carve It Up.");

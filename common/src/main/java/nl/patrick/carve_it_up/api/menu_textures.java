@@ -15,7 +15,7 @@ public enum menu_textures
     SUB_MENU_TOP(MOD_ID, "hud/sub_menu_top"),
     SUB_MENU_MIDDLE(MOD_ID, "hud/sub_menu_middle"),
     SUB_MENU_BOTTOM(MOD_ID, "hud/sub_menu_bottom"),
-    HIGHLIGHT("hud/hotbar_selection");
+    HIGHLIGHT(MOD_ID, "hud/hotbar_selection");
     
     private final Identifier identifier;
     

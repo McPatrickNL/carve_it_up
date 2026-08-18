@@ -46,6 +46,8 @@ public class FabricMod implements ModInitializer
         CreativeModeTabEvents.modifyOutputEvent(tabKey).register(content -> {
             content.accept(ModItems.EXAMPLE_ITEM.get());
             content.accept(ModBlocks.EXAMPLE_BLOCK_ITEM.get());
+            content.accept(ModItems.CARVING_TOOL.get());
+            content.accept(ModItems.IRON_CARVING_TOOL.get());
         });
     }
 }

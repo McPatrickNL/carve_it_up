@@ -59,6 +59,8 @@ public class NeoForgeMod
         if (event.getTab() == ModCreativeModeTabs.CARVE_IT_UP_TAB.get()) {
             event.accept(ModItems.EXAMPLE_ITEM.get());
             event.accept(ModBlocks.EXAMPLE_BLOCK_ITEM.get());
+            event.accept(ModItems.CARVING_TOOL.get());
+            event.accept(ModItems.IRON_CARVING_TOOL.get());
         }
     }
     

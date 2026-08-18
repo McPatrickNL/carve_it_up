@@ -10,9 +10,9 @@ import static nl.patrick.carve_it_up.CommonMod.MOD_ID;
 
 public enum CarvingMode
 {
-    REMOVE("Remove", "hud_remove_icon"),
-    ADD("Add", "hud_add_icon"),
-    REPLACE("Replace", "hud_replace_icon");
+    REMOVE("Remove", "hud/mode/remove_icon"),
+    ADD("Add", "hud/mode/add_icon"),
+    REPLACE("Replace", "hud/mode/replace_icon");
     
     private final String name;
     private final Identifier identifier;

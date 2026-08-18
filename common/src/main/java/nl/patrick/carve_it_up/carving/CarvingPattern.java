@@ -10,10 +10,10 @@ import static nl.patrick.carve_it_up.CommonMod.MOD_ID;
 
 public enum CarvingPattern
 {
-    VOXEL("One voxel", "hud_voxel_icon"),
-    MULTI_VOXEL("Multi voxel", "hud_multi_voxel_icon"),
-    LINE("Line", "hud_line_icon"),
-    FACE("Face", "hud_face_icon");
+    VOXEL("One voxel", "hud/pattern/voxel_icon"),
+    MULTI_VOXEL("Multi voxel", "hud/pattern/multi_voxel_icon"),
+    LINE("Line", "hud/pattern/line_icon"),
+    FACE("Face", "hud/pattern/face_icon");
     
     private final String name;
     private final Identifier identifier;
