@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import nl.patrick.carve_it_up.item.CarvingToolItem;
@@ -72,6 +73,11 @@ public class CarvingToolClientState {
                 for (Block block : carvedData.getBlocks()) {
                     if (block != null && block != Blocks.AIR && !availableBlocksList.contains(block)) {
                         availableBlocksList.add(block);
+                    }
+                }
+                for (BlockState state : carvedData.getVoxelMaterials().values()) {
+                    if (state != null && !state.isAir() && !availableBlocksList.contains(state.getBlock())) {
+                        availableBlocksList.add(state.getBlock());
                     }
                 }
             } else {

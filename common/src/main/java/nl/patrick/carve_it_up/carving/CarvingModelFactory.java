@@ -299,6 +299,46 @@ public class CarvingModelFactory {
         return new CarvedBlockStateModel(culledQuadsMap, unculledQuadsList, particleMaterial, originalFlags, useAmbientOcclusion);
     }
 
+    // NewStart Determine if a block state is solid opaque vs transparent
+    public static boolean isSolidOpaque(BlockState state) {
+        if (state == null || state.isAir()) {
+            return false;
+        }
+        return !state.getOcclusionShape().isEmpty() && !state.propagatesSkylightDown();
+    }
+
+    public static boolean shouldRenderFace(BlockState current, BlockState adjacent, Direction direction) {
+        if (current == null || current.isAir()) {
+            return false;
+        }
+        if (adjacent == null || adjacent.isAir()) {
+            return true;
+        }
+        if (current == adjacent) {
+            return false;
+        }
+
+        boolean currentSolid = isSolidOpaque(current);
+        boolean adjacentSolid = isSolidOpaque(adjacent);
+
+        if (currentSolid && !adjacentSolid) {
+            // Solid voxel touching a transparent voxel (e.g. Oak Wood touching Glass):
+            // Render the solid face to eliminate x-ray holes
+            return true;
+        } else if (!currentSolid && adjacentSolid) {
+            // Transparent voxel touching a solid voxel:
+            // Culled against the solid backplate
+            return false;
+        } else if (!currentSolid && !adjacentSolid) {
+            // Different transparent voxels (e.g. Red Glass next to Blue Glass):
+            return true;
+        } else {
+            // Both are solid opaque voxels (e.g. Stone next to Wood):
+            return false;
+        }
+    }
+    // NewEnd
+
     private static void compileQuadsForDirection(
         CarvedData definitions,
         Direction direction,
@@ -329,7 +369,7 @@ public class CarvingModelFactory {
                         int ay = cy + (axis == Direction.Axis.Y ? normalStep : 0);
                         int az = cz + (axis == Direction.Axis.Z ? normalStep : 0);
                         BlockState adj = getVoxelState(ax, ay, az, resolution, voxelMaterials);
-                        if (adj == null) {
+                        if (shouldRenderFace(current, adj, direction)) {
                             faceMaterials[u][v] = current;
                         }
                     }

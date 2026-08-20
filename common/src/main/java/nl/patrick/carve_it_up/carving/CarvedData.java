@@ -154,4 +154,19 @@ public class CarvedData {
         blocks.remove(block);
         return true;
     }
+
+    // NewStart Synchronizes the block material palette from currently populated voxel materials
+    public void rebuildBlockPalette() {
+        this.blocks.clear();
+        this.blocks.add(this.mainBlock);
+        for (BlockState state : this.voxelMaterials.values()) {
+            if (state != null && !state.isAir()) {
+                Block block = state.getBlock();
+                if (!this.blocks.contains(block)) {
+                    this.blocks.add(block);
+                }
+            }
+        }
+    }
+    // NewEnd
 }

@@ -57,14 +57,13 @@ public class ClientCarvingNetworkHandlers {
         if (existingCarvedData == null) {
             CarvedData freshCarvedData = new CarvedData(
                 payload.originalBlockState(),
-                clientLevel,
-                targetBlockPos,
-                CollisionContext.empty(),
                 payload.ownerUuid(),
                 payload.resolution()
             );
             freshCarvedData.getVoxelMaterials().clear();
             freshCarvedData.getVoxelMaterials().putAll(payload.voxelMaterials());
+            freshCarvedData.rebuildBlockPalette();
+
             while (freshCarvedData.getVersion() < payload.version()) {
                 freshCarvedData.incrementVersion();
             }
@@ -78,6 +77,8 @@ public class ClientCarvingNetworkHandlers {
         } else {
             existingCarvedData.getVoxelMaterials().clear();
             existingCarvedData.getVoxelMaterials().putAll(payload.voxelMaterials());
+            existingCarvedData.rebuildBlockPalette();
+
             while (existingCarvedData.getVersion() < payload.version()) {
                 existingCarvedData.incrementVersion();
             }

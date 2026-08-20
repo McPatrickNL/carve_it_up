@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Mixin into BlockBehaviour.BlockStateBase to override physical collision shapes,
- * hitbox selection outlines, visual shapes, and full-block collision checks.
+ * hitbox selection outlines, visual shapes, full-block collision checks, and shade lighting.
  */
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public class BlockStateBaseMixin {
@@ -97,4 +97,17 @@ public class BlockStateBaseMixin {
             callbackInfoReturnable.setReturnValue(false);
         }
     }
+
+    // NewStart 7. AMBIENT SHADE / LIGHTING BRIGHTNESS FOR CARVED / HOLLOWED BLOCKS (matches stairs, composters, slabs)
+    @Inject(
+        method = "getShadeBrightness(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)F",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void interceptShadeBrightness(BlockGetter levelGetter, BlockPos targetBlockPos, CallbackInfoReturnable<Float> callbackInfoReturnable) {
+        if (CarvingManager.isCarved(levelGetter, targetBlockPos)) {
+            callbackInfoReturnable.setReturnValue(1.0F);
+        }
+    }
+    // NewEnd
 }
