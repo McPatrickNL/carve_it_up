@@ -215,10 +215,15 @@ public class CarvingModelFactory {
             }
         }
 
-        // Increment data version to invalidate client caches
+        // NewStart Dynamically recompute authoritative collision shapes on the server
         if (modifiedCount > 0) {
+            VoxelShape updatedShape = calculateCollisionShape(data);
+            data.setCollisionShape(updatedShape);
+            data.setVisualShape(updatedShape);
+            data.setInteractionShape(updatedShape);
             data.incrementVersion();
         }
+        // NewEnd
 
         return new CarvingResult(modifiedCount, depletedMaterials);
     }
@@ -271,7 +276,6 @@ public class CarvingModelFactory {
         definitions.setCollisionShape(computedShape);
         definitions.setInteractionShape(computedShape);
 
-        // NewStart Separate outer boundary quads from internal cavity quads to avoid invalid neighbor face culling
         Map<Direction, List<BakedQuad>> culledQuadsMap = new EnumMap<>(Direction.class);
         List<BakedQuad> unculledQuadsList = new ArrayList<>();
         BakedQuad.MaterialInfo fallbackInfo = getOriginalMaterialInfo(originalModel);
@@ -281,7 +285,6 @@ public class CarvingModelFactory {
             compileQuadsForDirection(definitions, direction, fallbackInfo, directionBoundaryQuads, unculledQuadsList);
             culledQuadsMap.put(direction, directionBoundaryQuads);
         }
-        // NewEnd
 
         // Copy layout parameters from the original model
         Material.Baked particleMaterial = originalModel.particleMaterial();
@@ -373,39 +376,9 @@ public class CarvingModelFactory {
                         float maxV = (float) (v + h) / resolution;
                         float normalW = (float) (axisDir == Direction.AxisDirection.POSITIVE ? wVal + 1 : wVal) / resolution;
 
-                        // Winding order-dependent corners
+                        // NewStart Construct vertices and UVs matching FaceInfo winding order and orientation
                         org.joml.Vector3f p0, p1, p2, p3;
-                        if (direction == Direction.DOWN) {
-                            p0 = new org.joml.Vector3f(minU, normalW, maxV);
-                            p1 = new org.joml.Vector3f(minU, normalW, minV);
-                            p2 = new org.joml.Vector3f(maxU, normalW, minV);
-                            p3 = new org.joml.Vector3f(maxU, normalW, maxV);
-                        } else if (direction == Direction.UP) {
-                            p0 = new org.joml.Vector3f(minU, normalW, minV);
-                            p1 = new org.joml.Vector3f(minU, normalW, maxV);
-                            p2 = new org.joml.Vector3f(maxU, normalW, maxV);
-                            p3 = new org.joml.Vector3f(maxU, normalW, minV);
-                        } else if (direction == Direction.NORTH) {
-                            p0 = new org.joml.Vector3f(maxU, minV, normalW);
-                            p1 = new org.joml.Vector3f(maxU, maxV, normalW);
-                            p2 = new org.joml.Vector3f(minU, maxV, normalW);
-                            p3 = new org.joml.Vector3f(minU, minV, normalW);
-                        } else if (direction == Direction.SOUTH) {
-                            p0 = new org.joml.Vector3f(minU, minV, normalW);
-                            p1 = new org.joml.Vector3f(minU, maxV, normalW);
-                            p2 = new org.joml.Vector3f(maxU, maxV, normalW);
-                            p3 = new org.joml.Vector3f(maxU, minV, normalW);
-                        } else if (direction == Direction.WEST) {
-                            p0 = new org.joml.Vector3f(normalW, minV, minU);
-                            p1 = new org.joml.Vector3f(normalW, maxV, minU);
-                            p2 = new org.joml.Vector3f(normalW, maxV, maxU);
-                            p3 = new org.joml.Vector3f(normalW, minV, maxU);
-                        } else { // EAST
-                            p0 = new org.joml.Vector3f(normalW, minV, maxU);
-                            p1 = new org.joml.Vector3f(normalW, maxV, maxU);
-                            p2 = new org.joml.Vector3f(normalW, maxV, minU);
-                            p3 = new org.joml.Vector3f(normalW, minV, minU);
-                        }
+                        long uv0, uv1, uv2, uv3;
 
                         // Retrieve active material info
                         BakedQuad.MaterialInfo matInfo = getMaterialInfo(material, direction, fallbackInfo);
@@ -421,33 +394,62 @@ public class CarvingModelFactory {
                             float texMinV = spriteMinV + (spriteMaxV - spriteMinV) * minV;
                             float texMaxV = spriteMinV + (spriteMaxV - spriteMinV) * maxV;
 
-                            long uv0, uv1, uv2, uv3;
                             if (direction == Direction.DOWN) {
+                                p0 = new org.joml.Vector3f(minU, normalW, maxV);
+                                p1 = new org.joml.Vector3f(minU, normalW, minV);
+                                p2 = new org.joml.Vector3f(maxU, normalW, minV);
+                                p3 = new org.joml.Vector3f(maxU, normalW, maxV);
+
                                 uv0 = packUV(texMinU, texMaxV);
                                 uv1 = packUV(texMinU, texMinV);
                                 uv2 = packUV(texMaxU, texMinV);
                                 uv3 = packUV(texMaxU, texMaxV);
                             } else if (direction == Direction.UP) {
+                                p0 = new org.joml.Vector3f(minU, normalW, minV);
+                                p1 = new org.joml.Vector3f(minU, normalW, maxV);
+                                p2 = new org.joml.Vector3f(maxU, normalW, maxV);
+                                p3 = new org.joml.Vector3f(maxU, normalW, minV);
+
                                 uv0 = packUV(texMinU, texMinV);
                                 uv1 = packUV(texMinU, texMaxV);
                                 uv2 = packUV(texMaxU, texMaxV);
                                 uv3 = packUV(texMaxU, texMinV);
                             } else if (direction == Direction.NORTH) {
+                                p0 = new org.joml.Vector3f(maxU, maxV, normalW);
+                                p1 = new org.joml.Vector3f(maxU, minV, normalW);
+                                p2 = new org.joml.Vector3f(minU, minV, normalW);
+                                p3 = new org.joml.Vector3f(minU, maxV, normalW);
+
                                 uv0 = packUV(texMaxU, texMinV);
                                 uv1 = packUV(texMaxU, texMaxV);
                                 uv2 = packUV(texMinU, texMaxV);
                                 uv3 = packUV(texMinU, texMinV);
                             } else if (direction == Direction.SOUTH) {
+                                p0 = new org.joml.Vector3f(minU, maxV, normalW);
+                                p1 = new org.joml.Vector3f(minU, minV, normalW);
+                                p2 = new org.joml.Vector3f(maxU, minV, normalW);
+                                p3 = new org.joml.Vector3f(maxU, maxV, normalW);
+
                                 uv0 = packUV(texMinU, texMinV);
                                 uv1 = packUV(texMinU, texMaxV);
                                 uv2 = packUV(texMaxU, texMaxV);
                                 uv3 = packUV(texMaxU, texMinV);
                             } else if (direction == Direction.WEST) {
+                                p0 = new org.joml.Vector3f(normalW, maxV, minU);
+                                p1 = new org.joml.Vector3f(normalW, minV, minU);
+                                p2 = new org.joml.Vector3f(normalW, minV, maxU);
+                                p3 = new org.joml.Vector3f(normalW, maxV, maxU);
+
                                 uv0 = packUV(texMinU, texMinV);
                                 uv1 = packUV(texMinU, texMaxV);
                                 uv2 = packUV(texMaxU, texMaxV);
                                 uv3 = packUV(texMaxU, texMinV);
                             } else { // EAST
+                                p0 = new org.joml.Vector3f(normalW, maxV, maxU);
+                                p1 = new org.joml.Vector3f(normalW, minV, maxU);
+                                p2 = new org.joml.Vector3f(normalW, minV, minU);
+                                p3 = new org.joml.Vector3f(normalW, maxV, minU);
+
                                 uv0 = packUV(texMaxU, texMinV);
                                 uv1 = packUV(texMaxU, texMaxV);
                                 uv2 = packUV(texMinU, texMaxV);
@@ -461,7 +463,6 @@ public class CarvingModelFactory {
                                 matInfo
                             );
 
-                            // NewStart Sort outer boundary quads into directional bucket, interior cavity quads into unculled bucket
                             boolean isOuterBoundary = (axisDir == Direction.AxisDirection.NEGATIVE && wVal == 0)
                                 || (axisDir == Direction.AxisDirection.POSITIVE && wVal == resolution - 1);
                             if (isOuterBoundary) {
@@ -469,8 +470,8 @@ public class CarvingModelFactory {
                             } else {
                                 unculledQuadsList.add(quad);
                             }
-                            // NewEnd
                         }
+                        // NewEnd
                     }
                 }
             }
@@ -691,7 +692,6 @@ public class CarvingModelFactory {
             parts.add(this);
         }
 
-        // NewStart Return unculled cavity quads when direction is null, and outer boundary quads when direction is specified
         @Override
         public List<BakedQuad> getQuads(Direction direction) {
             if (direction == null) {
@@ -699,7 +699,6 @@ public class CarvingModelFactory {
             }
             return this.culledQuadsMap.getOrDefault(direction, Collections.emptyList());
         }
-        // NewEnd
 
         @Override
         public boolean useAmbientOcclusion() {

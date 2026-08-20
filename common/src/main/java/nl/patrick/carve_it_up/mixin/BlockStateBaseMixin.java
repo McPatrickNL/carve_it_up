@@ -1,3 +1,5 @@
+// File Location from project root:
+// common/src/main/java/nl/patrick/carve_it_up/mixin/BlockStateBaseMixin.java
 package nl.patrick.carve_it_up.mixin;
 
 import net.minecraft.core.BlockPos;
@@ -12,64 +14,75 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-
-// File Location from project root:
-// common/src/main/java/nl/patrick/carve_it_up/mixin/MixinBlock.java
-
-//@Mixin(Block.class)
+/**
+ * Mixin into BlockBehaviour.BlockStateBase to override physical collision shapes,
+ * hitbox selection outlines, visual shapes, and full-block collision checks for carved blocks.
+ */
 @Mixin(BlockBehaviour.BlockStateBase.class)
-public class BlockStateBaseMixin
-{
+public class BlockStateBaseMixin { // Converted from Allman style brace
+
     // 1. PHYSICAL COLLISION
     @Inject(
-//        method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
-        method = "getCollisionShape*",
+        method = "getCollisionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
         at = @At("HEAD"),
-        cancellable = true)
-    private void interceptCollisionShape(BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        CarvedData data = CarvingManager.getCarvedData(level, pos);
-        if (data != null) {
-            cir.setReturnValue(data.getCollisionShape());
+        cancellable = true
+    )
+    private void interceptCollisionShape(BlockGetter levelGetter, BlockPos targetBlockPos, CollisionContext collisionContext, CallbackInfoReturnable<VoxelShape> callbackInfoReturnable) {
+        CarvedData blockCarvedData = CarvingManager.getCarvedData(levelGetter, targetBlockPos);
+        if (blockCarvedData != null) {
+            callbackInfoReturnable.setReturnValue(blockCarvedData.getCollisionShape());
         }
     }
-    
+
     // 2. SELECTION WIREFRAME / HITBOX OUTLINE
     @Inject(
-//        method = "getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
-        method = "getShape*",
+        method = "getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
         at = @At("HEAD"),
-        cancellable = true)
-    private void interceptShape(BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        CarvedData data = CarvingManager.getCarvedData(level, pos);
-        if (data != null) {
-            cir.setReturnValue(data.getCollisionShape());
+        cancellable = true
+    )
+    private void interceptShape(BlockGetter levelGetter, BlockPos targetBlockPos, CollisionContext collisionContext, CallbackInfoReturnable<VoxelShape> callbackInfoReturnable) {
+        CarvedData blockCarvedData = CarvingManager.getCarvedData(levelGetter, targetBlockPos);
+        if (blockCarvedData != null) {
+            callbackInfoReturnable.setReturnValue(blockCarvedData.getCollisionShape());
         }
     }
-    
+
     // 3. LIGHT / PATHFINDING VISUAL SHAPE
     @Inject(
-//        method = "getVisualShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
-        method = "getVisualShape",
+        method = "getVisualShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
         at = @At("HEAD"),
-        cancellable = true)
-    private void interceptVisualShape(BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        CarvedData data = CarvingManager.getCarvedData(level, pos);
-        if (data != null) {
-            cir.setReturnValue(data.getVisualShape());
+        cancellable = true
+    )
+    private void interceptVisualShape(BlockGetter levelGetter, BlockPos targetBlockPos, CollisionContext collisionContext, CallbackInfoReturnable<VoxelShape> callbackInfoReturnable) {
+        CarvedData blockCarvedData = CarvingManager.getCarvedData(levelGetter, targetBlockPos);
+        if (blockCarvedData != null) {
+            callbackInfoReturnable.setReturnValue(blockCarvedData.getVisualShape());
         }
     }
-    
-    // 4. FACE CULLING / OCCLUSION (Prevents see-through x-ray holes in adjacent blocks)
-//    @Inject(
-////        method = "getFaceOcclusionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
-//        method = "getFaceOcclusionShape",
-//        at = @At("HEAD"),
-//        cancellable = true)
-//    private void interceptFaceOcclusionShape(Direction direction, CallbackInfoReturnable<VoxelShape> cir) {
-//        CarvedData data = CarvingManager.getCarvedData(level, pos);
-//        if (data != null) {
-//            // Evaluates the exact 2D footprint slice of your custom 3D VoxelShape on that face
-//            cir.setReturnValue(data.getCollisionShape().getFaceShape(direction));
-//        }
-//    }
+
+    // 4. INTERACTION SHAPE
+    @Inject(
+        method = "getInteractionShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void interceptInteractionShape(BlockGetter levelGetter, BlockPos targetBlockPos, CallbackInfoReturnable<VoxelShape> callbackInfoReturnable) {
+        CarvedData blockCarvedData = CarvingManager.getCarvedData(levelGetter, targetBlockPos);
+        if (blockCarvedData != null) {
+            callbackInfoReturnable.setReturnValue(blockCarvedData.getInteractionShape());
+        }
+    }
+
+    // NewStart Inform physics engine that carved blocks are not full solid cubes
+    @Inject(
+        method = "isCollisionShapeFullBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void interceptIsCollisionShapeFullBlock(BlockGetter levelGetter, BlockPos targetBlockPos, CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
+        if (CarvingManager.isCarved(levelGetter, targetBlockPos)) {
+            callbackInfoReturnable.setReturnValue(false);
+        }
+    }
+    // NewEnd
 }
