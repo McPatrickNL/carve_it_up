@@ -16,10 +16,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Mixin into BlockBehaviour.BlockStateBase to override physical collision shapes,
- * hitbox selection outlines, visual shapes, and full-block collision checks for carved blocks.
+ * hitbox selection outlines, visual shapes, and full-block collision checks.
  */
 @Mixin(BlockBehaviour.BlockStateBase.class)
-public class BlockStateBaseMixin { // Converted from Allman style brace
+public class BlockStateBaseMixin {
 
     // 1. PHYSICAL COLLISION
     @Inject(
@@ -73,7 +73,20 @@ public class BlockStateBaseMixin { // Converted from Allman style brace
         }
     }
 
-    // NewStart Inform physics engine that carved blocks are not full solid cubes
+    // 5. BLOCK SUPPORT SHAPE
+    @Inject(
+        method = "getBlockSupportShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void interceptBlockSupportShape(BlockGetter levelGetter, BlockPos targetBlockPos, CallbackInfoReturnable<VoxelShape> callbackInfoReturnable) {
+        CarvedData blockCarvedData = CarvingManager.getCarvedData(levelGetter, targetBlockPos);
+        if (blockCarvedData != null) {
+            callbackInfoReturnable.setReturnValue(blockCarvedData.getCollisionShape());
+        }
+    }
+
+    // 6. INFORM PHYSICS ENGINE THAT CARVED BLOCKS ARE NOT FULL SOLID CUBES
     @Inject(
         method = "isCollisionShapeFullBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z",
         at = @At("HEAD"),
@@ -84,5 +97,4 @@ public class BlockStateBaseMixin { // Converted from Allman style brace
             callbackInfoReturnable.setReturnValue(false);
         }
     }
-    // NewEnd
 }

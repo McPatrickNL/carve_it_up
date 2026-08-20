@@ -2,11 +2,16 @@
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvingManager.java
 package nl.patrick.carve_it_up.carving;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 import java.util.Map;
 import java.util.UUID;
@@ -18,7 +23,7 @@ import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 /**
  * Global manager handling retrieval, mutation, locking, and tracking of carved block data.
  */
-public class CarvingManager { // Converted from Allman style brace
+public class CarvingManager {
 
     private static final Map<LevelChunk, Boolean> TRACKED_CHUNKS = new WeakHashMap<>();
     private static final Map<BlockPos, UUID> ACTIVE_LOCKS = new ConcurrentHashMap<>();
@@ -52,23 +57,54 @@ public class CarvingManager { // Converted from Allman style brace
      * @return The CarvedData or null if not carved
      */
     public static CarvedData getCarvedData(BlockGetter level, BlockPos targetBlockPos) {
-        if (isCarved(level, targetBlockPos)) {
-            ChunkCarvedData chunkData = getChunkCarvedData(level, targetBlockPos);
-            if (chunkData != null) {
-                return chunkData.getCarvedData(targetBlockPos);
-            }
+        ChunkCarvedData chunkData = getChunkCarvedData(level, targetBlockPos);
+        if (chunkData != null && chunkData.hasCarvedData()) {
+            return chunkData.getCarvedData(targetBlockPos);
         }
         return null;
     }
 
     /**
-     * Shared internal bridge to safely locate the ChunkCarvedData capsule across environments.
+     * Shared internal bridge to safely locate ChunkCarvedData across environments without thread deadlocks.
      */
-    private static ChunkCarvedData getChunkCarvedData(BlockGetter level, BlockPos targetBlockPos) {
-        if (level instanceof Level worldLevelInstance) {
-            var levelChunk = worldLevelInstance.getChunkAt(targetBlockPos);
-            return ((IChunkCarvedDataAccessor) levelChunk).carveitup$getCarvedData();
+    public static ChunkCarvedData getChunkCarvedData(BlockGetter level, BlockPos targetBlockPos) {
+        if (level == null || targetBlockPos == null) {
+            return null;
         }
+
+        int chunkX = targetBlockPos.getX() >> 4;
+        int chunkZ = targetBlockPos.getZ() >> 4;
+
+        if (level instanceof Level worldLevelInstance) {
+            ChunkAccess chunk = worldLevelInstance.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
+            if (chunk instanceof IChunkCarvedDataAccessor accessor) {
+                return accessor.carveitup$getCarvedData();
+            }
+        } else if (level instanceof CollisionGetter collisionGetter) {
+            BlockGetter chunk = collisionGetter.getChunkForCollisions(chunkX, chunkZ);
+            if (chunk instanceof IChunkCarvedDataAccessor accessor) {
+                return accessor.carveitup$getCarvedData();
+            }
+        } else if (level instanceof LevelReader levelReader) {
+            ChunkAccess chunk = levelReader.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
+            if (chunk instanceof IChunkCarvedDataAccessor accessor) {
+                return accessor.carveitup$getCarvedData();
+            }
+        }
+
+        // Safe fallback for client side
+        try {
+            Minecraft minecraftInstance = Minecraft.getInstance();
+            if (minecraftInstance.level != null) {
+                ChunkAccess chunk = minecraftInstance.level.getChunkSource().getChunk(chunkX, chunkZ, false);
+                if (chunk instanceof IChunkCarvedDataAccessor accessor) {
+                    return accessor.carveitup$getCarvedData();
+                }
+            }
+        } catch (Throwable ignored) {
+            // Server-safe safeguard
+        }
+
         return null;
     }
 
@@ -84,11 +120,17 @@ public class CarvingManager { // Converted from Allman style brace
         if (chunkData != null) {
             chunkData.addCarvedData(worldLevel, targetBlockPos, carvedData);
 
-            // Mark the chunk as modified so the server knows it changed
             if (!worldLevel.isClientSide()) {
                 worldLevel.getChunkAt(targetBlockPos).markUnsaved();
             }
         }
+    }
+
+    /**
+     * Alias for setCarvedData.
+     */
+    public static void addCarvedData(Level worldLevel, BlockPos targetBlockPos, CarvedData carvedData) {
+        setCarvedData(worldLevel, targetBlockPos, carvedData);
     }
 
     /**

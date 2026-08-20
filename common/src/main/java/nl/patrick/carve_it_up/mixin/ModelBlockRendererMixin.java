@@ -2,14 +2,12 @@
 // common/src/main/java/nl/patrick/carve_it_up/mixin/ModelBlockRendererMixin.java
 package nl.patrick.carve_it_up.mixin;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.BlockQuadOutput;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -22,14 +20,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static nl.patrick.carve_it_up.CommonMod.LOGGER;
-
 /**
  * Mixin into ModelBlockRenderer to intercept chunk mesh building, replace default vanilla block models
  * with dynamic greedy-meshed carved block models, and manage neighbor face occlusion.
  */
 @Mixin(ModelBlockRenderer.class)
-public class ModelBlockRendererMixin { // Converted from Allman style brace
+public class ModelBlockRendererMixin {
 
     @Inject(
         method = "tesselateBlock",
@@ -48,19 +44,12 @@ public class ModelBlockRendererMixin { // Converted from Allman style brace
         long randomSeed,
         CallbackInfo callbackInfo
     ) {
-        Level activeWorldLevel = levelGetter instanceof Level worldLevelInstance ? worldLevelInstance : Minecraft.getInstance().level;
-        if (activeWorldLevel == null) {
-            return;
-        }
-
-        // 1. Fire our high-performance light check method
-        if (CarvingManager.isCarved(activeWorldLevel, targetBlockPos)) {
-            CarvedData blockCarvedData = CarvingManager.getCarvedData(activeWorldLevel, targetBlockPos);
+        if (CarvingManager.isCarved(levelGetter, targetBlockPos)) {
+            CarvedData blockCarvedData = CarvingManager.getCarvedData(levelGetter, targetBlockPos);
 
             if (blockCarvedData != null) {
                 BlockStateModel customBakedModel = ClientCarvingCache.getOrCompute(targetBlockPos, blockCarvedData.getVersion(), blockCarvedData);
                 if (customBakedModel != null && currentBlockStateModel != customBakedModel) {
-                    LOGGER.info("Tesselating carved model for position {}", targetBlockPos);
                     ((ModelBlockRenderer)(Object)this).tesselateBlock(
                         outputBuffer,
                         xCoordinate,
@@ -92,9 +81,8 @@ public class ModelBlockRendererMixin { // Converted from Allman style brace
         BlockPos neighborBlockPos,
         CallbackInfoReturnable<Boolean> callbackInfoReturnable
     ) {
-        Level activeWorldLevel = levelGetter instanceof Level worldLevelInstance ? worldLevelInstance : Minecraft.getInstance().level;
-        if (activeWorldLevel != null && CarvingManager.isCarved(activeWorldLevel, neighborBlockPos)) {
-            CarvedData neighborCarvedData = CarvingManager.getCarvedData(activeWorldLevel, neighborBlockPos);
+        if (CarvingManager.isCarved(levelGetter, neighborBlockPos)) {
+            CarvedData neighborCarvedData = CarvingManager.getCarvedData(levelGetter, neighborBlockPos);
             if (neighborCarvedData != null) {
                 VoxelShape faceOcclusion = neighborCarvedData.getCollisionShape().getFaceShape(renderDirection.getOpposite());
                 if (faceOcclusion != Shapes.block()) {
@@ -120,9 +108,8 @@ public class ModelBlockRendererMixin { // Converted from Allman style brace
         BlockPos neighborBlockPos,
         CallbackInfoReturnable<Boolean> callbackInfoReturnable
     ) {
-        Level activeWorldLevel = levelGetter instanceof Level worldLevelInstance ? worldLevelInstance : Minecraft.getInstance().level;
-        if (activeWorldLevel != null && CarvingManager.isCarved(activeWorldLevel, neighborBlockPos)) {
-            CarvedData neighborCarvedData = CarvingManager.getCarvedData(activeWorldLevel, neighborBlockPos);
+        if (CarvingManager.isCarved(levelGetter, neighborBlockPos)) {
+            CarvedData neighborCarvedData = CarvingManager.getCarvedData(levelGetter, neighborBlockPos);
             if (neighborCarvedData != null) {
                 VoxelShape faceOcclusion = neighborCarvedData.getCollisionShape().getFaceShape(renderDirection.getOpposite());
                 if (faceOcclusion != Shapes.block()) {

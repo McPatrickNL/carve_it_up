@@ -18,7 +18,7 @@ import nl.patrick.carve_it_up.carving.IChunkCarvedDataAccessor;
  * Client-side handling for SyncCarvedDataPayload. Writes authoritative server snapshots
  * into client chunk data and invalidates caches and chunk sections for re-tesselation.
  */
-public class ClientCarvingNetworkHandlers { // Converted from Allman style brace
+public class ClientCarvingNetworkHandlers {
 
     /**
      * Client-side handler for SyncCarvedDataPayload. Writes the server's authoritative voxel
@@ -34,7 +34,24 @@ public class ClientCarvingNetworkHandlers { // Converted from Allman style brace
         }
 
         BlockPos targetBlockPos = payload.blockPos();
-        ChunkCarvedData chunkCarvedData = ((IChunkCarvedDataAccessor) clientLevel.getChunkAt(targetBlockPos)).carveitup$getCarvedData();
+        var chunkAccess = clientLevel.getChunkSource().getChunk(targetBlockPos.getX() >> 4, targetBlockPos.getZ() >> 4, false);
+        if (!(chunkAccess instanceof IChunkCarvedDataAccessor accessor)) {
+            return;
+        }
+
+        ChunkCarvedData chunkCarvedData = accessor.carveitup$getCarvedData();
+        if (chunkCarvedData == null) {
+            return;
+        }
+
+        // Handle block removal payload
+        if (payload.voxelMaterials().isEmpty()) {
+            chunkCarvedData.removeCarvedData(targetBlockPos);
+            ClientCarvingCache.invalidate(targetBlockPos);
+            markSectionDirty(minecraftInstance, targetBlockPos);
+            return;
+        }
+
         CarvedData existingCarvedData = chunkCarvedData.getCarvedData(targetBlockPos);
 
         if (existingCarvedData == null) {
@@ -52,12 +69,10 @@ public class ClientCarvingNetworkHandlers { // Converted from Allman style brace
                 freshCarvedData.incrementVersion();
             }
 
-            // NewStart Ensure custom collision shapes are computed immediately on the client
             VoxelShape computedShape = CarvingModelFactory.calculateCollisionShape(freshCarvedData);
             freshCarvedData.setCollisionShape(computedShape);
             freshCarvedData.setVisualShape(computedShape);
             freshCarvedData.setInteractionShape(computedShape);
-            // NewEnd
 
             chunkCarvedData.addCarvedData(clientLevel, targetBlockPos, freshCarvedData);
         } else {
@@ -67,23 +82,29 @@ public class ClientCarvingNetworkHandlers { // Converted from Allman style brace
                 existingCarvedData.incrementVersion();
             }
 
-            // NewStart Update custom collision shapes on existing client data
             VoxelShape computedShape = CarvingModelFactory.calculateCollisionShape(existingCarvedData);
             existingCarvedData.setCollisionShape(computedShape);
             existingCarvedData.setVisualShape(computedShape);
             existingCarvedData.setInteractionShape(computedShape);
-            // NewEnd
         }
 
         // Invalidate model cache entry for this position
         ClientCarvingCache.invalidate(targetBlockPos);
 
-        // Force immediate chunk section re-render and neighbor update
-        if (minecraftInstance.levelRenderer != null) {
-            int sectionCoordinateX = SectionPos.blockToSectionCoord(targetBlockPos.getX());
-            int sectionCoordinateY = SectionPos.blockToSectionCoord(targetBlockPos.getY());
-            int sectionCoordinateZ = SectionPos.blockToSectionCoord(targetBlockPos.getZ());
-            minecraftInstance.levelRenderer.setSectionDirtyWithNeighbors(sectionCoordinateX, sectionCoordinateY, sectionCoordinateZ);
+        // Force immediate chunk section re-render and neighbor update if world is active
+        markSectionDirty(minecraftInstance, targetBlockPos);
+    }
+
+    private static void markSectionDirty(Minecraft minecraftInstance, BlockPos targetBlockPos) {
+        try {
+            if (minecraftInstance.level != null && minecraftInstance.levelRenderer != null) {
+                int sectionCoordinateX = SectionPos.blockToSectionCoord(targetBlockPos.getX());
+                int sectionCoordinateY = SectionPos.blockToSectionCoord(targetBlockPos.getY());
+                int sectionCoordinateZ = SectionPos.blockToSectionCoord(targetBlockPos.getZ());
+                minecraftInstance.levelRenderer.setSectionDirtyWithNeighbors(sectionCoordinateX, sectionCoordinateY, sectionCoordinateZ);
+            }
+        } catch (Throwable ignored) {
+            // Safeguard during early world loading transitions
         }
     }
 }

@@ -118,6 +118,7 @@ public class CarvingModelFactory {
                 break;
 
             case LINE:
+                // Step inward into the block along the specified direction
                 int stepX = directionalStep.getStepX();
                 int stepY = directionalStep.getStepY();
                 int stepZ = directionalStep.getStepZ();
@@ -215,7 +216,7 @@ public class CarvingModelFactory {
             }
         }
 
-        // NewStart Dynamically recompute authoritative collision shapes on the server
+        // Dynamically recompute authoritative collision shapes on the server
         if (modifiedCount > 0) {
             VoxelShape updatedShape = calculateCollisionShape(data);
             data.setCollisionShape(updatedShape);
@@ -223,7 +224,6 @@ public class CarvingModelFactory {
             data.setInteractionShape(updatedShape);
             data.incrementVersion();
         }
-        // NewEnd
 
         return new CarvingResult(modifiedCount, depletedMaterials);
     }
@@ -376,7 +376,7 @@ public class CarvingModelFactory {
                         float maxV = (float) (v + h) / resolution;
                         float normalW = (float) (axisDir == Direction.AxisDirection.POSITIVE ? wVal + 1 : wVal) / resolution;
 
-                        // NewStart Construct vertices and UVs matching FaceInfo winding order and orientation
+                        // Calculate continuous UV texture coordinates aligned with world axes
                         org.joml.Vector3f p0, p1, p2, p3;
                         long uv0, uv1, uv2, uv3;
 
@@ -391,8 +391,14 @@ public class CarvingModelFactory {
 
                             float texMinU = spriteMinU + (spriteMaxU - spriteMinU) * minU;
                             float texMaxU = spriteMinU + (spriteMaxU - spriteMinU) * maxU;
-                            float texMinV = spriteMinV + (spriteMaxV - spriteMinV) * minV;
-                            float texMaxV = spriteMinV + (spriteMaxV - spriteMinV) * maxV;
+
+                            // For vertical faces, invert V so higher Y aligns with the top of the sprite (spriteMinV)
+                            float texTopV = spriteMinV + (spriteMaxV - spriteMinV) * (1.0f - maxV);
+                            float texBottomV = spriteMinV + (spriteMaxV - spriteMinV) * (1.0f - minV);
+
+                            // For horizontal faces, V maps directly along the Z axis
+                            float texMinZ = spriteMinV + (spriteMaxV - spriteMinV) * minV;
+                            float texMaxZ = spriteMinV + (spriteMaxV - spriteMinV) * maxV;
 
                             if (direction == Direction.DOWN) {
                                 p0 = new org.joml.Vector3f(minU, normalW, maxV);
@@ -400,60 +406,60 @@ public class CarvingModelFactory {
                                 p2 = new org.joml.Vector3f(maxU, normalW, minV);
                                 p3 = new org.joml.Vector3f(maxU, normalW, maxV);
 
-                                uv0 = packUV(texMinU, texMaxV);
-                                uv1 = packUV(texMinU, texMinV);
-                                uv2 = packUV(texMaxU, texMinV);
-                                uv3 = packUV(texMaxU, texMaxV);
+                                uv0 = packUV(texMinU, texMaxZ);
+                                uv1 = packUV(texMinU, texMinZ);
+                                uv2 = packUV(texMaxU, texMinZ);
+                                uv3 = packUV(texMaxU, texMaxZ);
                             } else if (direction == Direction.UP) {
                                 p0 = new org.joml.Vector3f(minU, normalW, minV);
                                 p1 = new org.joml.Vector3f(minU, normalW, maxV);
                                 p2 = new org.joml.Vector3f(maxU, normalW, maxV);
                                 p3 = new org.joml.Vector3f(maxU, normalW, minV);
 
-                                uv0 = packUV(texMinU, texMinV);
-                                uv1 = packUV(texMinU, texMaxV);
-                                uv2 = packUV(texMaxU, texMaxV);
-                                uv3 = packUV(texMaxU, texMinV);
+                                uv0 = packUV(texMinU, texMinZ);
+                                uv1 = packUV(texMinU, texMaxZ);
+                                uv2 = packUV(texMaxU, texMaxZ);
+                                uv3 = packUV(texMaxU, texMinZ);
                             } else if (direction == Direction.NORTH) {
                                 p0 = new org.joml.Vector3f(maxU, maxV, normalW);
                                 p1 = new org.joml.Vector3f(maxU, minV, normalW);
                                 p2 = new org.joml.Vector3f(minU, minV, normalW);
                                 p3 = new org.joml.Vector3f(minU, maxV, normalW);
 
-                                uv0 = packUV(texMaxU, texMinV);
-                                uv1 = packUV(texMaxU, texMaxV);
-                                uv2 = packUV(texMinU, texMaxV);
-                                uv3 = packUV(texMinU, texMinV);
+                                uv0 = packUV(texMaxU, texTopV);
+                                uv1 = packUV(texMaxU, texBottomV);
+                                uv2 = packUV(texMinU, texBottomV);
+                                uv3 = packUV(texMinU, texTopV);
                             } else if (direction == Direction.SOUTH) {
                                 p0 = new org.joml.Vector3f(minU, maxV, normalW);
                                 p1 = new org.joml.Vector3f(minU, minV, normalW);
                                 p2 = new org.joml.Vector3f(maxU, minV, normalW);
                                 p3 = new org.joml.Vector3f(maxU, maxV, normalW);
 
-                                uv0 = packUV(texMinU, texMinV);
-                                uv1 = packUV(texMinU, texMaxV);
-                                uv2 = packUV(texMaxU, texMaxV);
-                                uv3 = packUV(texMaxU, texMinV);
+                                uv0 = packUV(texMinU, texTopV);
+                                uv1 = packUV(texMinU, texBottomV);
+                                uv2 = packUV(texMaxU, texBottomV);
+                                uv3 = packUV(texMaxU, texTopV);
                             } else if (direction == Direction.WEST) {
                                 p0 = new org.joml.Vector3f(normalW, maxV, minU);
                                 p1 = new org.joml.Vector3f(normalW, minV, minU);
                                 p2 = new org.joml.Vector3f(normalW, minV, maxU);
                                 p3 = new org.joml.Vector3f(normalW, maxV, maxU);
 
-                                uv0 = packUV(texMinU, texMinV);
-                                uv1 = packUV(texMinU, texMaxV);
-                                uv2 = packUV(texMaxU, texMaxV);
-                                uv3 = packUV(texMaxU, texMinV);
+                                uv0 = packUV(texMinU, texTopV);
+                                uv1 = packUV(texMinU, texBottomV);
+                                uv2 = packUV(texMaxU, texBottomV);
+                                uv3 = packUV(texMaxU, texTopV);
                             } else { // EAST
                                 p0 = new org.joml.Vector3f(normalW, maxV, maxU);
                                 p1 = new org.joml.Vector3f(normalW, minV, maxU);
                                 p2 = new org.joml.Vector3f(normalW, minV, minU);
                                 p3 = new org.joml.Vector3f(normalW, maxV, minU);
 
-                                uv0 = packUV(texMaxU, texMinV);
-                                uv1 = packUV(texMaxU, texMaxV);
-                                uv2 = packUV(texMinU, texMaxV);
-                                uv3 = packUV(texMinU, texMinV);
+                                uv0 = packUV(texMaxU, texTopV);
+                                uv1 = packUV(texMaxU, texBottomV);
+                                uv2 = packUV(texMinU, texBottomV);
+                                uv3 = packUV(texMinU, texTopV);
                             }
 
                             BakedQuad quad = new BakedQuad(
@@ -471,7 +477,6 @@ public class CarvingModelFactory {
                                 unculledQuadsList.add(quad);
                             }
                         }
-                        // NewEnd
                     }
                 }
             }

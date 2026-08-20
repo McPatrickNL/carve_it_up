@@ -6,10 +6,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import nl.patrick.carve_it_up.carving.CarvedData;
 import nl.patrick.carve_it_up.carving.CarvingManager;
 import nl.patrick.carve_it_up.carving.CarvingModelFactory;
+import nl.patrick.carve_it_up.carving.CarvingMode;
 import nl.patrick.carve_it_up.item.CarvingToolItem;
 import nl.patrick.carve_it_up.services.Services;
 
@@ -20,9 +23,8 @@ import java.util.HashMap;
  * client-only imports (Minecraft, BlockStateModel, etc.) since this class is referenced from the
  * platform mod init classes, which load on dedicated servers too.
  */
-public class CarvingNetworkHandlers { // Converted from Allman style brace
+public class CarvingNetworkHandlers {
 
-    // Review Replace with the player's real reach attribute once confirmed against the 26.1 mappings
     private static final double MAX_CARVE_REACH_DISTANCE = 6.0;
 
     /**
@@ -78,6 +80,21 @@ public class CarvingNetworkHandlers { // Converted from Allman style brace
         // Nothing actually changed — skip the block update + broadcast entirely
         if (carvingResult.getVoxelsModified() <= 0) {
             return;
+        }
+
+        // 5. If the player used the material attached to their Carving Tool, consume it from the tool
+        if (payload.mode() == CarvingMode.ADD || payload.mode() == CarvingMode.REPLACE) {
+            if (CarvingToolItem.hasLoadedMaterial(heldItemStack) && CarvingToolItem.getLoadedMaterial(heldItemStack) == payload.material().getBlock()) {
+                CarvingToolItem.clearLoadedMaterial(heldItemStack);
+                player.inventoryMenu.broadcastChanges();
+            }
+        }
+
+        // 6. When all voxels of a material are depleted from the carved block, pop it out into the world as an item
+        for (Block depletedBlock : carvingResult.getDepletedMaterials()) {
+            if (depletedBlock != null && depletedBlock != Blocks.AIR && depletedBlock != carvedData.getOriginalBlockState().getBlock()) {
+                Block.popResource(worldLevel, targetPosition, new ItemStack(depletedBlock));
+            }
         }
 
         BlockState currentBlockState = worldLevel.getBlockState(targetPosition);

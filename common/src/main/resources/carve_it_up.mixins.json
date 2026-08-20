@@ -3,8 +3,23 @@
     "minVersion": "0.8.5",
     "package": "nl.patrick.carve_it_up.mixin",
     "refmap": "carve_it_up-refmap.json",
-    "mixins": ["BlockStateBaseMixin", "LevelChunkMixin"],
+    "mixins": [
+        "BlockBehaviourMixin",
+        "BlockItemMixin",
+        "BlockStateBaseMixin",
+        "ChunkAccessMixin",
+        "LevelChunkMixin",
+        "LevelMixin",
+        "PlayerChunkSenderMixin",
+        "SerializableChunkDataMixin"
+    ],
+    "client": [
+        "GuiMixin",
+        "MinecraftAttackMixin",
+        "ModelBlockRendererMixin",
+        "MouseHandlerMixin"
+    ],
     "injectors": {
         "defaultRequire": 1
-    }, "client": ["GuiMixin", "ModelBlockRendererMixin", "MouseHandlerMixin", "MinecraftAttackMixin"]
+    }
 }
