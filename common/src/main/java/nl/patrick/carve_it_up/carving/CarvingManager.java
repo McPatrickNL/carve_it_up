@@ -1,6 +1,7 @@
+// File Location from project root:
+// common/src/main/java/nl/patrick/carve_it_up/carving/CarvingManager.java
 package nl.patrick.carve_it_up.carving;
 
-//import net.minecraft.client.renderer.chunk.RenderChunkRegion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
@@ -14,105 +15,109 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
+/**
+ * Global manager handling retrieval, mutation, locking, and tracking of carved block data.
+ */
+public class CarvingManager { // Converted from Allman style brace
 
-// File Location from project root:
-// common/src/main/java/nl/patrick/carve_it_up/carving/CarvingManager.java
-
-public class CarvingManager
-{
     private static final Map<LevelChunk, Boolean> TRACKED_CHUNKS = new WeakHashMap<>();
-    private static final Map<BlockPos, UUID>      ACTIVE_LOCKS   = new ConcurrentHashMap<>();
-    
+    private static final Map<BlockPos, UUID> ACTIVE_LOCKS = new ConcurrentHashMap<>();
+
     /**
      * Light-weight, high-performance check to see if a coordinate has any carving data.
      * Perfect for rendering and physics hot-paths.
+     *
+     * @param level The block getter or level instance
+     * @param targetBlockPos The position to check
+     * @return True if the block is carved
      */
-    public static boolean isCarved(BlockGetter level, BlockPos pos) {
-        ChunkCarvedData chunkData = getChunkCarvedData(level, pos);
+    public static boolean isCarved(BlockGetter level, BlockPos targetBlockPos) {
+        ChunkCarvedData chunkData = getChunkCarvedData(level, targetBlockPos);
         if (chunkData == null || !chunkData.hasCarvedData()) {
             return false;
         }
-        return chunkData.isPositionCarved(pos);
-//        return chunkData.hasCarvedData() && chunkData.isCarved(pos);
+        return chunkData.isPositionCarved(targetBlockPos);
     }
-    
-    public static boolean isLockedBySomeoneElse(BlockPos pos, Player player) {
-        UUID owner = ACTIVE_LOCKS.get(pos);
-        return owner != null && !owner.equals(player.getUUID());
+
+    public static boolean isLockedBySomeoneElse(BlockPos targetBlockPos, Player player) {
+        UUID lockOwnerUuid = ACTIVE_LOCKS.get(targetBlockPos);
+        return lockOwnerUuid != null && !lockOwnerUuid.equals(player.getUUID());
     }
-    
+
     /**
      * Grabs the full structural CarvedData container for a position, if it exists.
+     *
+     * @param level The block getter or level instance
+     * @param targetBlockPos The position to query
+     * @return The CarvedData or null if not carved
      */
-    public static CarvedData getCarvedData(BlockGetter level, BlockPos pos) {
-//        LOGGER.info("Requesting carved block data from " + pos.toShortString());
-        if (isCarved(level, pos)) {
-            ChunkCarvedData chunkData = getChunkCarvedData(level, pos);
+    public static CarvedData getCarvedData(BlockGetter level, BlockPos targetBlockPos) {
+        if (isCarved(level, targetBlockPos)) {
+            ChunkCarvedData chunkData = getChunkCarvedData(level, targetBlockPos);
             if (chunkData != null) {
-                return chunkData.getCarvedData(pos);
+                return chunkData.getCarvedData(targetBlockPos);
             }
         }
         return null;
     }
-    
+
     /**
      * Shared internal bridge to safely locate the ChunkCarvedData capsule across environments.
      */
-    private static ChunkCarvedData getChunkCarvedData(BlockGetter level, BlockPos pos) {
-//        LOGGER.info("Requesting carved chunk data from " + pos.toShortString());
-        if (level instanceof Level world) {
-            var chunk = world.getChunkAt(pos);
-            return ((IChunkCarvedDataAccessor) chunk).carveitup$getCarvedData();
+    private static ChunkCarvedData getChunkCarvedData(BlockGetter level, BlockPos targetBlockPos) {
+        if (level instanceof Level worldLevelInstance) {
+            var levelChunk = worldLevelInstance.getChunkAt(targetBlockPos);
+            return ((IChunkCarvedDataAccessor) levelChunk).carveitup$getCarvedData();
         }
         return null;
     }
-    
+
     /**
      * Assigns custom CarvedData to a specific position.
+     *
+     * @param worldLevel The active world level
+     * @param targetBlockPos The block position
+     * @param carvedData The CarvedData structure to assign
      */
-    public static void setCarvedData(Level level, BlockPos pos, CarvedData data) {
-//        LOGGER.info("Requesting carved block data to be added to " + pos.toShortString());
-        ChunkCarvedData chunkData = getChunkCarvedData(level, pos);
+    public static void setCarvedData(Level worldLevel, BlockPos targetBlockPos, CarvedData carvedData) {
+        ChunkCarvedData chunkData = getChunkCarvedData(worldLevel, targetBlockPos);
         if (chunkData != null) {
-            chunkData.addCarvedData(level, pos, data);
-            
+            chunkData.addCarvedData(worldLevel, targetBlockPos, carvedData);
+
             // Mark the chunk as modified so the server knows it changed
-            if (level instanceof Level world && !world.isClientSide()) {
-                world.getChunkAt(pos).markUnsaved();
+            if (!worldLevel.isClientSide()) {
+                worldLevel.getChunkAt(targetBlockPos).markUnsaved();
             }
         }
     }
-    
+
     /**
      * Removes carving data from a specific position.
+     *
+     * @param level The active level
+     * @param targetBlockPos The block position to clear
      */
-    public static void removeCarvedData(BlockGetter level, BlockPos pos) {
-//        LOGGER.info("Requesting carved block data from " + pos.toShortString());
-        ChunkCarvedData chunkData = getChunkCarvedData(level, pos);
+    public static void removeCarvedData(BlockGetter level, BlockPos targetBlockPos) {
+        ChunkCarvedData chunkData = getChunkCarvedData(level, targetBlockPos);
         if (chunkData != null) {
-            chunkData.removeCarvedData(pos);
-            
-            if (level instanceof Level world && !world.isClientSide()) {
-                world.getChunkAt(pos).markUnsaved();
+            chunkData.removeCarvedData(targetBlockPos);
+
+            if (level instanceof Level worldLevel && !worldLevel.isClientSide()) {
+                worldLevel.getChunkAt(targetBlockPos).markUnsaved();
             }
         }
     }
-    
+
     /**
-     * Flat out wipes all carving data from currently tracked loaded chunks.
-     * Call this for rapid testing without restarting your game client!
-     * High-performance, clean, and safe from 26.1 refactor breaking points.
+     * Wipes all carving data from currently tracked loaded chunks for rapid testing.
      */
     public static void debugWipeAllLoadedData() {
-//        LOGGER.info("request to wipe all data");
         for (LevelChunk chunk : TRACKED_CHUNKS.keySet()) {
             if (chunk instanceof IChunkCarvedDataAccessor accessor) {
                 ChunkCarvedData chunkData = accessor.carveitup$getCarvedData();
                 Map<BlockPos, CarvedDataMapSet> carvedBlocks = chunkData.getCarvedBlocks();
-                
-                // Loop through all marked Blocks in this chunk
-                for (Map.Entry<BlockPos, CarvedDataMapSet> dataEntry : carvedBlocks.entrySet())
-                {
+
+                for (Map.Entry<BlockPos, CarvedDataMapSet> dataEntry : carvedBlocks.entrySet()) {
                     removeCarvedDataLight(dataEntry.getValue().getLevel(), dataEntry.getKey());
                 }
                 chunk.markUnsaved();
@@ -121,17 +126,14 @@ public class CarvingManager
         TRACKED_CHUNKS.clear();
         LOGGER.info("All carved data wiped");
     }
-    
-    /**
-     * Removes carving data from a specific position.
-     */
-    private static void removeCarvedDataLight(BlockGetter level, BlockPos pos) {
-        ChunkCarvedData chunkData = getChunkCarvedData(level, pos);
+
+    private static void removeCarvedDataLight(BlockGetter level, BlockPos targetBlockPos) {
+        ChunkCarvedData chunkData = getChunkCarvedData(level, targetBlockPos);
         if (chunkData != null) {
-            chunkData.removeCarvedData(pos);
-            
-            if (level instanceof Level world && !world.isClientSide()) {
-                world.getChunkAt(pos).markUnsaved();
+            chunkData.removeCarvedData(targetBlockPos);
+
+            if (level instanceof Level worldLevel && !worldLevel.isClientSide()) {
+                worldLevel.getChunkAt(targetBlockPos).markUnsaved();
             }
         }
     }

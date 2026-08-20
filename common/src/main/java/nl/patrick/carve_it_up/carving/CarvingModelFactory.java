@@ -250,6 +250,7 @@ public class CarvingModelFactory {
 
     /**
      * Dynamically bakes a custom 3D greedy-meshed BlockStateModel from the carved data definitions.
+     * Separates outer boundary quads (culled against neighbors) from internal cavity quads (unculled).
      *
      * @param definitions The carved data containing voxel occupancy and materials
      * @return A baked BlockStateModel representing the carved block
@@ -270,15 +271,17 @@ public class CarvingModelFactory {
         definitions.setCollisionShape(computedShape);
         definitions.setInteractionShape(computedShape);
 
-        // Compile greedy-meshed quads for all 6 directions
-        Map<Direction, List<BakedQuad>> quadsMap = new EnumMap<>(Direction.class);
+        // NewStart Separate outer boundary quads from internal cavity quads to avoid invalid neighbor face culling
+        Map<Direction, List<BakedQuad>> culledQuadsMap = new EnumMap<>(Direction.class);
+        List<BakedQuad> unculledQuadsList = new ArrayList<>();
         BakedQuad.MaterialInfo fallbackInfo = getOriginalMaterialInfo(originalModel);
 
         for (Direction direction : Direction.values()) {
-            List<BakedQuad> directionQuads = new ArrayList<>();
-            compileQuadsForDirection(definitions, direction, fallbackInfo, directionQuads);
-            quadsMap.put(direction, directionQuads);
+            List<BakedQuad> directionBoundaryQuads = new ArrayList<>();
+            compileQuadsForDirection(definitions, direction, fallbackInfo, directionBoundaryQuads, unculledQuadsList);
+            culledQuadsMap.put(direction, directionBoundaryQuads);
         }
+        // NewEnd
 
         // Copy layout parameters from the original model
         Material.Baked particleMaterial = originalModel.particleMaterial();
@@ -290,14 +293,15 @@ public class CarvingModelFactory {
             useAmbientOcclusion = originalParts.get(0).useAmbientOcclusion();
         }
 
-        return new CarvedBlockStateModel(quadsMap, particleMaterial, originalFlags, useAmbientOcclusion);
+        return new CarvedBlockStateModel(culledQuadsMap, unculledQuadsList, particleMaterial, originalFlags, useAmbientOcclusion);
     }
 
     private static void compileQuadsForDirection(
         CarvedData definitions,
         Direction direction,
         BakedQuad.MaterialInfo fallbackInfo,
-        List<BakedQuad> quadsList
+        List<BakedQuad> culledQuadsList,
+        List<BakedQuad> unculledQuadsList
     ) {
         int resolution = definitions.getResolution();
         Map<Integer, BlockState> voxelMaterials = definitions.getVoxelMaterials();
@@ -456,7 +460,16 @@ public class CarvingModelFactory {
                                 direction,
                                 matInfo
                             );
-                            quadsList.add(quad);
+
+                            // NewStart Sort outer boundary quads into directional bucket, interior cavity quads into unculled bucket
+                            boolean isOuterBoundary = (axisDir == Direction.AxisDirection.NEGATIVE && wVal == 0)
+                                || (axisDir == Direction.AxisDirection.POSITIVE && wVal == resolution - 1);
+                            if (isOuterBoundary) {
+                                culledQuadsList.add(quad);
+                            } else {
+                                unculledQuadsList.add(quad);
+                            }
+                            // NewEnd
                         }
                     }
                 }
@@ -643,18 +656,21 @@ public class CarvingModelFactory {
      * BlockStateModel wrapper implementation providing baked quads for custom carved blocks.
      */
     public static class CarvedBlockStateModel implements BlockStateModel, BlockStateModelPart {
-        private final Map<Direction, List<BakedQuad>> quadsMap;
+        private final Map<Direction, List<BakedQuad>> culledQuadsMap;
+        private final List<BakedQuad> unculledQuads;
         private final Material.Baked particleMaterial;
         private final int materialFlags;
         private final boolean useAmbientOcclusion;
 
         public CarvedBlockStateModel(
-            Map<Direction, List<BakedQuad>> quadsMap,
+            Map<Direction, List<BakedQuad>> culledQuadsMap,
+            List<BakedQuad> unculledQuads,
             Material.Baked particleMaterial,
             int materialFlags,
             boolean useAmbientOcclusion
         ) {
-            this.quadsMap = quadsMap;
+            this.culledQuadsMap = culledQuadsMap;
+            this.unculledQuads = unculledQuads;
             this.particleMaterial = particleMaterial;
             this.materialFlags = materialFlags;
             this.useAmbientOcclusion = useAmbientOcclusion;
@@ -675,10 +691,15 @@ public class CarvingModelFactory {
             parts.add(this);
         }
 
+        // NewStart Return unculled cavity quads when direction is null, and outer boundary quads when direction is specified
         @Override
         public List<BakedQuad> getQuads(Direction direction) {
-            return this.quadsMap.getOrDefault(direction, Collections.emptyList());
+            if (direction == null) {
+                return this.unculledQuads;
+            }
+            return this.culledQuadsMap.getOrDefault(direction, Collections.emptyList());
         }
+        // NewEnd
 
         @Override
         public boolean useAmbientOcclusion() {

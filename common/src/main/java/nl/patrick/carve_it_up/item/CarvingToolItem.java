@@ -1,7 +1,6 @@
-package nl.patrick.carve_it_up.item;
-
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/item/CarvingToolItem.java
+package nl.patrick.carve_it_up.item;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -20,84 +19,77 @@ import java.util.UUID;
 
 import static nl.patrick.carve_it_up.carving.CarvingManager.debugWipeAllLoadedData;
 
+/**
+ * Item used to initialize blocks into carvable structures, configure carving modes,
+ * and perform carving actions in-world.
+ */
+public class CarvingToolItem extends Item { // Converted from Allman style brace
 
-public class CarvingToolItem extends Item
-{
     public CarvingToolItem(Properties properties) {
         super(properties);
     }
-    
+
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        BlockState originalState = level.getBlockState(pos);
-        
+        Level worldLevel = context.getLevel();
+        BlockPos targetBlockPos = context.getClickedPos();
+        BlockState originalBlockState = worldLevel.getBlockState(targetBlockPos);
+
         // Prevent carving air, liquids, or unbreakable blocks (like bedrock)
-        if (originalState.isAir() || !originalState.getFluidState().isEmpty() || originalState.getDestroySpeed(level, pos) < 0.0F) {
+        if (originalBlockState.isAir() || !originalBlockState.getFluidState().isEmpty() || originalBlockState.getDestroySpeed(worldLevel, targetBlockPos) < 0.0F) {
             return InteractionResult.FAIL;
         }
-        
-        // TODO: Support fragile/non-solid blocks eventually (grass, crops, signs).
-        // Currently disabled to prevent physics breaking until we implement custom ticking models.
-        
+
+        // Future Support fragile/non-solid blocks eventually (grass, crops, signs).
+
         // 0. CREATIVE + SNEAK + RIGHT CLICK = WIPE ALL DATA (TESTING)
         if (context.getPlayer() != null && context.getPlayer().isCrouching() && context.getPlayer().isCreative()) {
             debugWipeAllLoadedData();
-            level.sendBlockUpdated(pos, originalState, originalState, 3);
+            worldLevel.sendBlockUpdated(targetBlockPos, originalBlockState, originalBlockState, 3);
             return InteractionResult.SUCCESS;
         }
-        
+
         // 1. SNEAK + RIGHT CLICK = REMOVE DATA (TESTING)
         if (context.getPlayer() != null && context.getPlayer().isCrouching()) {
-            if (CarvingManager.isCarved(level, pos)) {
-                CarvingManager.removeCarvedData(level, pos);
-                level.sendBlockUpdated(pos, originalState, originalState, 3);
+            if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
+                CarvingManager.removeCarvedData(worldLevel, targetBlockPos);
+                worldLevel.sendBlockUpdated(targetBlockPos, originalBlockState, originalBlockState, 3);
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.PASS;
         }
-        
+
         // 2. NORMAL RIGHT CLICK = ADD DATA
-        if (!CarvingManager.isCarved(level, pos)) {
-            // Removed the Minecraft.getInstance()...getBlockStateModelSet() lookup that used to
-            // live here — useOn() runs authoritatively server-side, so touching the client-only
-            // Minecraft class here was a guaranteed dedicated-server crash risk. CarvedData no
-            // longer needs a BlockStateModel at construction time (see CarvedData / CarvingModelFactory).
-            
-            UUID owner      = context.getPlayer() != null ? context.getPlayer().getUUID() : UUID.randomUUID();
-            int  resolution = 16; // TODO: Hook into your server config value here!
-            
-            CarvedData data = new CarvedData(
-                originalState,
-                level,
-                pos,
+        if (!CarvingManager.isCarved(worldLevel, targetBlockPos)) {
+            UUID ownerUuid = context.getPlayer() != null ? context.getPlayer().getUUID() : UUID.randomUUID();
+            int gridResolution = 16;
+
+            CarvedData freshCarvedData = new CarvedData(
+                originalBlockState,
+                worldLevel,
+                targetBlockPos,
                 CollisionContext.of(context.getPlayer()),
-                owner,
-                resolution
+                ownerUuid,
+                gridResolution
             );
-            
-            CarvingManager.setCarvedData(level, pos, data);
-            level.sendBlockUpdated(pos, originalState, originalState, 3);
-            
-            // NewStart Broadcast the freshly-created carve data to every client already tracking
-            // this position, so it renders correctly for players other than the one who carved it.
-            // Services.NETWORK.sendToTrackingClients() no-ops safely if level isn't a ServerLevel,
-            // so this is safe to leave unguarded even if useOn() is ever invoked client-side.
+
+            CarvingManager.setCarvedData(worldLevel, targetBlockPos, freshCarvedData);
+            worldLevel.sendBlockUpdated(targetBlockPos, originalBlockState, originalBlockState, 3);
+
+            // Broadcast the freshly-created carve data to every client tracking this position
             SyncCarvedDataPayload syncPayload = new SyncCarvedDataPayload(
-                pos,
-                data.getOriginalBlockState(),
-                data.getOwnerUuid(),
-                data.getResolution(),
-                data.getVersion(),
-                new HashMap<>(data.getVoxelMaterials())
+                targetBlockPos,
+                freshCarvedData.getOriginalBlockState(),
+                freshCarvedData.getOwnerUuid(),
+                freshCarvedData.getResolution(),
+                freshCarvedData.getVersion(),
+                new HashMap<>(freshCarvedData.getVoxelMaterials())
             );
-            Services.NETWORK.sendToTrackingClients(level, pos, syncPayload);
-            // NewEnd
-            
+            Services.NETWORK.sendToTrackingClients(worldLevel, targetBlockPos, syncPayload);
+
             return InteractionResult.SUCCESS;
         }
-        
+
         return InteractionResult.PASS;
     }
 }
