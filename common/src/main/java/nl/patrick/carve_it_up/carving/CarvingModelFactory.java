@@ -1,3 +1,5 @@
+// File Location from project root:
+// common/src/main/java/nl/patrick/carve_it_up/carving/CarvingModelFactory.java
 package nl.patrick.carve_it_up.carving;
 
 import net.minecraft.client.Minecraft;
@@ -13,13 +15,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-
-import java.util.*;
-
-// File Location from project root:
-// common/src/main/java/nl/patrick/carve_it_up/carving/CarvingModelFactory.java
-
+/**
+ * Factory class responsible for server-side carving calculations, dynamic collision
+ * and visual shape generation, and client-side greedy-meshed baked model construction.
+ */
 public class CarvingModelFactory {
 
     // Client rendering configuration settings
@@ -27,7 +34,10 @@ public class CarvingModelFactory {
     public static boolean skipOtherPlayerCarvings = false;
 
     // --- ENUMS & RESULT CONTAINER ---
-    
+
+    /**
+     * Container holding the result of a server-side carving operation.
+     */
     public static class CarvingResult {
         private final int voxelsModified;
         private final List<Block> depletedMaterials;
@@ -48,6 +58,21 @@ public class CarvingModelFactory {
 
     // --- SERVER-SIDE CALCULATIONS ---
 
+    /**
+     * Applies a carve action on the server-authoritative voxel grid.
+     *
+     * @param data The carved data instance representing the block's current voxel state
+     * @param mode The carving mode (REMOVE, ADD, REPLACE)
+     * @param pattern The carving tool pattern (VOXEL, MULTI_VOXEL, LINE, FACE)
+     * @param targetX The target voxel X coordinate within the resolution grid
+     * @param targetY The target voxel Y coordinate within the resolution grid
+     * @param targetZ The target voxel Z coordinate within the resolution grid
+     * @param toolMaterial The block state material to place when in ADD or REPLACE mode
+     * @param width The brush width / radius for multi-voxel patterns
+     * @param direction The primary placement direction for directional patterns
+     * @param face The block face clicked by the player
+     * @return CarvingResult containing modification statistics and depleted material types
+     */
     public static CarvingResult applyCarvingAction(
         CarvedData data,
         CarvingMode mode,
@@ -72,8 +97,8 @@ public class CarvingModelFactory {
 
         // 2. Identify all targeted 3D voxel coordinates
         List<int[]> targets = new ArrayList<>();
-        Direction dir = direction != null ? direction : Direction.UP;
-        Direction f = face != null ? face : Direction.UP;
+        Direction directionalStep = direction != null ? direction : Direction.UP;
+        Direction targetedFace = face != null ? face : Direction.UP;
 
         switch (pattern) {
             case VOXEL:
@@ -83,48 +108,48 @@ public class CarvingModelFactory {
             case MULTI_VOXEL:
                 int halfLower = (width - 1) / 2;
                 int halfUpper = width / 2;
-                for (int dx = -halfLower; dx <= halfUpper; dx++) {
-                    for (int dy = -halfLower; dy <= halfUpper; dy++) {
-                        for (int dz = -halfLower; dz <= halfUpper; dz++) {
-                            targets.add(new int[]{targetX + dx, targetY + dy, targetZ + dz});
+                for (int deltaX = -halfLower; deltaX <= halfUpper; deltaX++) {
+                    for (int deltaY = -halfLower; deltaY <= halfUpper; deltaY++) {
+                        for (int deltaZ = -halfLower; deltaZ <= halfUpper; deltaZ++) {
+                            targets.add(new int[]{targetX + deltaX, targetY + deltaY, targetZ + deltaZ});
                         }
                     }
                 }
                 break;
 
             case LINE:
-                int stepX = dir.getStepX();
-                int stepY = dir.getStepY();
-                int stepZ = dir.getStepZ();
+                int stepX = directionalStep.getStepX();
+                int stepY = directionalStep.getStepY();
+                int stepZ = directionalStep.getStepZ();
                 for (int step = 0; step < resolution; step++) {
-                    int cx = targetX + stepX * step;
-                    int cy = targetY + stepY * step;
-                    int cz = targetZ + stepZ * step;
-                    if (cx < 0 || cx >= resolution || cy < 0 || cy >= resolution || cz < 0 || cz >= resolution) {
+                    int currentX = targetX + stepX * step;
+                    int currentY = targetY + stepY * step;
+                    int currentZ = targetZ + stepZ * step;
+                    if (currentX < 0 || currentX >= resolution || currentY < 0 || currentY >= resolution || currentZ < 0 || currentZ >= resolution) {
                         break;
                     }
-                    targets.add(new int[]{cx, cy, cz});
+                    targets.add(new int[]{currentX, currentY, currentZ});
                 }
                 break;
 
             case FACE:
-                Direction.Axis axis = f.getAxis();
+                Direction.Axis axis = targetedFace.getAxis();
                 if (axis == Direction.Axis.X) {
-                    for (int y = 0; y < resolution; y++) {
-                        for (int z = 0; z < resolution; z++) {
-                            targets.add(new int[]{targetX, y, z});
+                    for (int yCoord = 0; yCoord < resolution; yCoord++) {
+                        for (int zCoord = 0; zCoord < resolution; zCoord++) {
+                            targets.add(new int[]{targetX, yCoord, zCoord});
                         }
                     }
                 } else if (axis == Direction.Axis.Y) {
-                    for (int x = 0; x < resolution; x++) {
-                        for (int z = 0; z < resolution; z++) {
-                            targets.add(new int[]{x, targetY, z});
+                    for (int xCoord = 0; xCoord < resolution; xCoord++) {
+                        for (int zCoord = 0; zCoord < resolution; zCoord++) {
+                            targets.add(new int[]{xCoord, targetY, zCoord});
                         }
                     }
                 } else { // Z axis
-                    for (int x = 0; x < resolution; x++) {
-                        for (int y = 0; y < resolution; y++) {
-                            targets.add(new int[]{x, y, targetZ});
+                    for (int xCoord = 0; xCoord < resolution; xCoord++) {
+                        for (int yCoord = 0; yCoord < resolution; yCoord++) {
+                            targets.add(new int[]{xCoord, yCoord, targetZ});
                         }
                     }
                 }
@@ -183,10 +208,10 @@ public class CarvingModelFactory {
         }
 
         List<Block> depletedMaterials = new ArrayList<>();
-        for (Block b : blocksBefore) {
-            if (!blocksAfter.contains(b)) {
-                depletedMaterials.add(b);
-                data.removeBlock(b);
+        for (Block block : blocksBefore) {
+            if (!blocksAfter.contains(block)) {
+                depletedMaterials.add(block);
+                data.removeBlock(block);
             }
         }
 
@@ -200,6 +225,12 @@ public class CarvingModelFactory {
 
     // --- CLIENT-SIDE MODEL BAKING ---
 
+    /**
+     * Determines whether client-side custom model baking and rendering should be bypassed.
+     *
+     * @param definitions The carved data definition for the block
+     * @return True if custom rendering should be bypassed in favor of the vanilla model
+     */
     public static boolean shouldBypassRendering(CarvedData definitions) {
         if (!renderingEnabled) {
             return true;
@@ -210,22 +241,28 @@ public class CarvingModelFactory {
                 if (player != null && !player.getUUID().equals(definitions.getOwnerUuid())) {
                     return true;
                 }
-            } catch (Throwable t) {
+            } catch (Throwable throwable) {
                 // Safeguard for non-client or early-loading contexts
             }
         }
         return false;
     }
 
+    /**
+     * Dynamically bakes a custom 3D greedy-meshed BlockStateModel from the carved data definitions.
+     *
+     * @param definitions The carved data containing voxel occupancy and materials
+     * @return A baked BlockStateModel representing the carved block
+     */
     public static BlockStateModel bakeCustomModel(CarvedData definitions) {
         // Validation check
         if (shouldBypassRendering(definitions)) {
-            return definitions.getOriginalBlockStateModel();
+            return resolveOriginalBlockStateModel(definitions);
         }
 
         int resolution = definitions.getResolution();
         Map<Integer, BlockState> voxelMaterials = definitions.getVoxelMaterials();
-        BlockStateModel originalModel = definitions.getOriginalBlockStateModel();
+        BlockStateModel originalModel = resolveOriginalBlockStateModel(definitions);
 
         // Dynamically compute physics, collision and interaction shapes
         VoxelShape computedShape = calculateCollisionShape(definitions);
@@ -246,14 +283,14 @@ public class CarvingModelFactory {
         // Copy layout parameters from the original model
         Material.Baked particleMaterial = originalModel.particleMaterial();
         int originalFlags = originalModel.materialFlags();
-        boolean useAO = true;
+        boolean useAmbientOcclusion = true;
         List<BlockStateModelPart> originalParts = new ArrayList<>();
         originalModel.collectParts(RandomSource.create(), originalParts);
         if (!originalParts.isEmpty()) {
-            useAO = originalParts.get(0).useAmbientOcclusion();
+            useAmbientOcclusion = originalParts.get(0).useAmbientOcclusion();
         }
 
-        return new CarvedBlockStateModel(quadsMap, particleMaterial, originalFlags, useAO);
+        return new CarvedBlockStateModel(quadsMap, particleMaterial, originalFlags, useAmbientOcclusion);
     }
 
     private static void compileQuadsForDirection(
@@ -439,6 +476,21 @@ public class CarvingModelFactory {
         return ((long) Float.floatToIntBits(u) & 0xFFFFFFFFL) << 32 | ((long) Float.floatToIntBits(v) & 0xFFFFFFFFL);
     }
 
+    private static BlockStateModel resolveOriginalBlockStateModel(CarvedData definitions) {
+        return Minecraft.getInstance()
+                        .getModelManager()
+                        .getBlockStateModelSet()
+                        .get(definitions.getOriginalBlockState());
+    }
+
+    /**
+     * Looks up the material and sprite info for a given block state and direction.
+     *
+     * @param state The block state to sample texture info from
+     * @param direction The face direction to query
+     * @param fallback The fallback material info if none is discovered
+     * @return The resolved MaterialInfo for quad baking
+     */
     public static BakedQuad.MaterialInfo getMaterialInfo(BlockState state, Direction direction, BakedQuad.MaterialInfo fallback) {
         try {
             BlockStateModel model = Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(state);
@@ -452,28 +504,34 @@ public class CarvingModelFactory {
                     }
                 }
                 // Try other directions
-                for (Direction d : Direction.values()) {
+                for (Direction otherDirection : Direction.values()) {
                     for (BlockStateModelPart part : parts) {
-                        List<BakedQuad> quads = part.getQuads(d);
+                        List<BakedQuad> quads = part.getQuads(otherDirection);
                         if (quads != null && !quads.isEmpty()) {
                             return quads.get(0).materialInfo();
                         }
                     }
                 }
             }
-        } catch (Throwable t) {
+        } catch (Throwable throwable) {
             // Safe fallback for server/non-client calls
         }
         return fallback;
     }
 
+    /**
+     * Extracts the primary material info from an original block state model.
+     *
+     * @param originalModel The original BlockStateModel
+     * @return The extracted MaterialInfo or null if not found
+     */
     public static BakedQuad.MaterialInfo getOriginalMaterialInfo(BlockStateModel originalModel) {
         if (originalModel != null) {
             List<BlockStateModelPart> parts = new ArrayList<>();
             originalModel.collectParts(RandomSource.create(), parts);
             for (BlockStateModelPart part : parts) {
-                for (Direction d : Direction.values()) {
-                    List<BakedQuad> quads = part.getQuads(d);
+                for (Direction direction : Direction.values()) {
+                    List<BakedQuad> quads = part.getQuads(direction);
                     if (quads != null && !quads.isEmpty()) {
                         return quads.get(0).materialInfo();
                     }
@@ -485,17 +543,23 @@ public class CarvingModelFactory {
 
     // --- PHYSICS COLLISION SHAPES ---
 
+    /**
+     * Computes the optimized VoxelShape bounding boxes from the 3D voxel grid.
+     *
+     * @param data The carved data holding the voxel matrix
+     * @return An optimized compound VoxelShape
+     */
     public static VoxelShape calculateCollisionShape(CarvedData data) {
         int resolution = data.getResolution();
         boolean[][][] occupied = new boolean[resolution][resolution][resolution];
         Map<Integer, BlockState> materials = data.getVoxelMaterials();
         boolean hasAny = false;
 
-        for (int i = 0; i < data.getTotalVoxels(); i++) {
-            if (materials.containsKey(i)) {
-                int x = i % resolution;
-                int y = (i / resolution) % resolution;
-                int z = i / (resolution * resolution);
+        for (int iterationIndex = 0; iterationIndex < data.getTotalVoxels(); iterationIndex++) {
+            if (materials.containsKey(iterationIndex)) {
+                int x = iterationIndex % resolution;
+                int y = (iterationIndex / resolution) % resolution;
+                int z = iterationIndex / (resolution * resolution);
                 occupied[x][y][z] = true;
                 hasAny = true;
             }
@@ -575,6 +639,9 @@ public class CarvingModelFactory {
 
     // --- CUSTOM BLOCK STATE MODEL WRAPPER ---
 
+    /**
+     * BlockStateModel wrapper implementation providing baked quads for custom carved blocks.
+     */
     public static class CarvedBlockStateModel implements BlockStateModel, BlockStateModelPart {
         private final Map<Direction, List<BakedQuad>> quadsMap;
         private final Material.Baked particleMaterial;

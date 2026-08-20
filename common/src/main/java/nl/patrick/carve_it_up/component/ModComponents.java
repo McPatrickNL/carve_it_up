@@ -12,9 +12,6 @@ import net.minecraft.network.codec.StreamCodec;
 import nl.patrick.carve_it_up.registry.RegistryObject;
 import nl.patrick.carve_it_up.services.Services;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static nl.patrick.carve_it_up.CommonMod.LOGGER;
 
 

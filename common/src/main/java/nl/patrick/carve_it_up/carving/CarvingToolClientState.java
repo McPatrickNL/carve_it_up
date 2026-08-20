@@ -28,6 +28,12 @@ public class CarvingToolClientState
     public static int activePatternIndex = 0;   // Cycles CarvingModelFactory.CarvingPattern
     public static int activeMaterialIndex = 0;  // Cycles targeted CarvedData materials
     
+    // NewStart Fixed width used for the MULTI_VOXEL pattern until the HUD exposes a way to
+    // adjust it per-carve.
+    // Future Make this player-adjustable, likely via a third scroll axis or a HUD slider.
+    public static final int DEFAULT_MULTI_VOXEL_WIDTH = 3;
+    // NewEnd
+    
     /**
      * Checks if the player is holding the carving tool in their main hand.
      */
@@ -86,6 +92,19 @@ public class CarvingToolClientState
         CarvingPattern[] patterns = CarvingPattern.values();
         return patterns[Math.abs(activePatternIndex % patterns.length)];
     }
+    
+    // NewStart Resolves whichever block the HUD currently has selected as the active carving
+    // material — mirrors the logic already used by GuiMixin for slot 3, factored out so the new
+    // attack-triggered carve request can reuse it.
+    public static Block getSelectedMaterialBlock() {
+        List<Block> targetedBlocks = getTargetedBlocks();
+        if (!targetedBlocks.isEmpty()) {
+            int idx = Math.abs(activeMaterialIndex % targetedBlocks.size());
+            return targetedBlocks.get(idx);
+        }
+        return getFallbackLookedAtBlock();
+    }
+    // NewEnd
     
     /**
      * Dual-axis scrolling router triggered by mouse wheel events.

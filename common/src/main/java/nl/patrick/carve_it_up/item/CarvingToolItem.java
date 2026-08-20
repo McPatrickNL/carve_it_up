@@ -3,7 +3,6 @@ package nl.patrick.carve_it_up.item;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/item/CarvingToolItem.java
 
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -13,7 +12,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import nl.patrick.carve_it_up.carving.CarvedData;
 import nl.patrick.carve_it_up.carving.CarvingManager;
+import nl.patrick.carve_it_up.network.SyncCarvedDataPayload;
+import nl.patrick.carve_it_up.services.Services;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 import static nl.patrick.carve_it_up.carving.CarvingManager.debugWipeAllLoadedData;
@@ -58,27 +60,41 @@ public class CarvingToolItem extends Item
         
         // 2. NORMAL RIGHT CLICK = ADD DATA
         if (!CarvingManager.isCarved(level, pos)) {
-            // Retrieve vanilla model safely
-            net.minecraft.client.renderer.block.dispatch.BlockStateModel vanillaModel = net.minecraft.client.Minecraft.getInstance()
-                                                                                                                      .getModelManager()
-                                                                                                                      .getBlockStateModelSet()
-                                                                                                                      .get(originalState);
+            // Removed the Minecraft.getInstance()...getBlockStateModelSet() lookup that used to
+            // live here — useOn() runs authoritatively server-side, so touching the client-only
+            // Minecraft class here was a guaranteed dedicated-server crash risk. CarvedData no
+            // longer needs a BlockStateModel at construction time (see CarvedData / CarvingModelFactory).
             
             UUID owner      = context.getPlayer() != null ? context.getPlayer().getUUID() : UUID.randomUUID();
             int  resolution = 16; // TODO: Hook into your server config value here!
             
             CarvedData data = new CarvedData(
-                    originalState,
-                    vanillaModel,
-                    level,
-                    pos,
-                    CollisionContext.of(context.getPlayer()),
-                    owner,
-                    resolution
+                originalState,
+                level,
+                pos,
+                CollisionContext.of(context.getPlayer()),
+                owner,
+                resolution
             );
             
             CarvingManager.setCarvedData(level, pos, data);
             level.sendBlockUpdated(pos, originalState, originalState, 3);
+            
+            // NewStart Broadcast the freshly-created carve data to every client already tracking
+            // this position, so it renders correctly for players other than the one who carved it.
+            // Services.NETWORK.sendToTrackingClients() no-ops safely if level isn't a ServerLevel,
+            // so this is safe to leave unguarded even if useOn() is ever invoked client-side.
+            SyncCarvedDataPayload syncPayload = new SyncCarvedDataPayload(
+                pos,
+                data.getOriginalBlockState(),
+                data.getOwnerUuid(),
+                data.getResolution(),
+                data.getVersion(),
+                new HashMap<>(data.getVoxelMaterials())
+            );
+            Services.NETWORK.sendToTrackingClients(level, pos, syncPayload);
+            // NewEnd
+            
             return InteractionResult.SUCCESS;
         }
         

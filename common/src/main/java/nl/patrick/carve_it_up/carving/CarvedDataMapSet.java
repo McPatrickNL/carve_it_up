@@ -3,7 +3,6 @@ package nl.patrick.carve_it_up.carving;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvedDataMapSet.java
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
 

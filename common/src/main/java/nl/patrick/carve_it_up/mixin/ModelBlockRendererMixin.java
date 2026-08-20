@@ -3,12 +3,10 @@ package nl.patrick.carve_it_up.mixin;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/mixin/ModelBlockRendererMixin.java
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.BlockQuadOutput;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import nl.patrick.carve_it_up.carving.CarvedData;

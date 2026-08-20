@@ -1,6 +1,5 @@
 package nl.patrick.carve_it_up.registry;
 
-import nl.patrick.carve_it_up.component.ModComponents;
 import nl.patrick.carve_it_up.services.IRegistryPlatform;
 
 // File Location from project root:

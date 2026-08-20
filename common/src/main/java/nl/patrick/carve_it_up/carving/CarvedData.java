@@ -3,7 +3,6 @@ package nl.patrick.carve_it_up.carving;
 // File Location from project root:
 // common/src/main/java/nl/patrick/carve_it_up/carving/CarvedData.java
 
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,8 +20,10 @@ import java.util.UUID;
 public class CarvedData
 {
     private final BlockState originalBlockState;
-    private final BlockStateModel originalBlockStateModel;
-    private BlockStateModel newBlockStateModel;
+    // Removed originalBlockStateModel / newBlockStateModel fields — BlockStateModel is a
+    // client-only class (net.minecraft.client.renderer...). ChunkCarvedData -> CarvedData is
+    // reachable from LevelChunkMixin, which is applied on the dedicated server too, so this class
+    // must stay 100% common-safe. Client-side baked models now live only in ClientCarvingCache.
     private final Block mainBlock;
     private final List<Block> blocks = new ArrayList<>();
     
@@ -43,16 +44,15 @@ public class CarvedData
     private VoxelShape interactionShape;
     private int version = 1;
     
-    public CarvedData(BlockState originalBlockState, BlockStateModel originalBlockStateModel, Level level, BlockPos blockPos, CollisionContext originalCollisionContext, UUID ownerUuid, int resolution)
+    // NewStart Constructor no longer takes a BlockStateModel — see class-level comment above.
+    public CarvedData(BlockState originalBlockState, Level level, BlockPos blockPos, CollisionContext originalCollisionContext, UUID ownerUuid, int resolution)
     {
         this.originalBlockState      = originalBlockState;
-        this.originalBlockStateModel = originalBlockStateModel;
-        this.newBlockStateModel      = originalBlockStateModel;
-        this.mainBlock               = originalBlockState.getBlock();
+        this.mainBlock                = originalBlockState.getBlock();
         this.blocks.add(mainBlock);
-        this.ownerUuid               = ownerUuid;
-        this.resolution              = resolution;
-        this.totalVoxels             = resolution * resolution * resolution;
+        this.ownerUuid                = ownerUuid;
+        this.resolution                = resolution;
+        this.totalVoxels               = resolution * resolution * resolution;
         
         this.visualShape      = originalBlockState.getVisualShape(level, blockPos, originalCollisionContext);
         this.collisionShape   = originalBlockState.getCollisionShape(level, blockPos);
@@ -63,23 +63,23 @@ public class CarvedData
             this.voxelMaterials.put(i, originalBlockState);
         }
     }
+    // NewEnd
     
     public BlockState getOriginalBlockState()           {return originalBlockState;}
-    public BlockStateModel getOriginalBlockStateModel() {return originalBlockStateModel;}
-    public BlockStateModel getNewBlockStateModel()      {return newBlockStateModel;}
+    // Removed getOriginalBlockStateModel() / getNewBlockStateModel() / setNewBlockStateModel() —
+    // client-only baked models are looked up on demand in CarvingModelFactory instead.
     public Block getMainBlock()                         {return mainBlock;}
     public List<Block> getBlocks()                      {return blocks;}
     public Map<Integer, BlockState> getVoxelMaterials() {return voxelMaterials;}
     public VoxelShape getVisualShape()                  {return visualShape;}
     public VoxelShape getCollisionShape()               {return collisionShape;}
-    public VoxelShape getInteractionShape()             {return interactionShape;}
+    public VoxelShape getInteractionShape()              {return interactionShape;}
     public int getVersion()                             {return this.version;}
     public int getResolution()                          {return this.resolution;}
     public int getTotalVoxels()                         {return this.totalVoxels;}
-    public UUID getOwnerUuid()                          {return this.ownerUuid;}
-    public boolean canBypassFactions()                  {return this.bypassFactions;}
+    public UUID getOwnerUuid()                           {return this.ownerUuid;}
+    public boolean canBypassFactions()                   {return this.bypassFactions;}
     
-    public void setNewBlockStateModel(BlockStateModel newModel)  {this.newBlockStateModel = newModel;}
     public void setVisualShape(VoxelShape visualShape)           {this.visualShape = visualShape;}
     public void setCollisionShape(VoxelShape collisionShape)     {this.collisionShape = collisionShape;}
     public void setInteractionShape(VoxelShape interactionShape) {this.interactionShape = interactionShape;}
