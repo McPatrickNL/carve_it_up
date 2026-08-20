@@ -221,6 +221,7 @@ public class CarvingToolItem extends Item {
                 ownerUuid,
                 gridResolution
             );
+            nl.patrick.carve_it_up.carving.CarvingModelFactory.populateFromShape(freshCarvedData, originalBlockState, worldLevel, targetBlockPos);
 
             CarvingManager.setCarvedData(worldLevel, targetBlockPos, freshCarvedData);
             worldLevel.sendBlockUpdated(targetBlockPos, originalBlockState, originalBlockState, 3);

@@ -4,6 +4,7 @@ package nl.patrick.carve_it_up.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -44,9 +45,19 @@ public class CarvingNetworkHandlers {
             return;
         }
 
-        // 2. Block still carved?
+        // 2. Block still carved? If not carved, initialize on-the-fly from the original in-world shape
         if (!CarvingManager.isCarved(worldLevel, targetPosition)) {
-            return;
+            BlockState blockState = worldLevel.getBlockState(targetPosition);
+            if (blockState.isAir() || !blockState.getFluidState().isEmpty() || blockState.getDestroySpeed(worldLevel, targetPosition) < 0.0F) {
+                return;
+            }
+            CarvedData freshCarvedData = new CarvedData(
+                blockState,
+                player.getUUID(),
+                16
+            );
+            CarvingModelFactory.populateFromShape(freshCarvedData, blockState, worldLevel, targetPosition);
+            CarvingManager.setCarvedData(worldLevel, targetPosition, freshCarvedData);
         }
 
         // 3. Lock not held by someone else?
@@ -82,10 +93,26 @@ public class CarvingNetworkHandlers {
             return;
         }
 
-        // 5. If the player used the material attached to their Carving Tool, consume it from the tool
+        // 5. If the player used the material attached to their Carving Tool, consume it and auto-reload the next block from inventory
         if (payload.mode() == CarvingMode.ADD || payload.mode() == CarvingMode.REPLACE) {
             if (CarvingToolItem.hasLoadedMaterial(heldItemStack) && CarvingToolItem.getLoadedMaterial(heldItemStack) == payload.material().getBlock()) {
+                Block consumedBlock = CarvingToolItem.getLoadedMaterial(heldItemStack);
                 CarvingToolItem.clearLoadedMaterial(heldItemStack);
+
+                if (!player.isCreative()) {
+                    // Search player inventory for another block of the same type to automatically keep tool loaded
+                    for (int slotIndex = 0; slotIndex < player.getInventory().getContainerSize(); slotIndex++) {
+                        ItemStack inventoryStack = player.getInventory().getItem(slotIndex);
+                        if (!inventoryStack.isEmpty() && inventoryStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() == consumedBlock) {
+                            inventoryStack.shrink(1);
+                            CarvingToolItem.setLoadedMaterial(heldItemStack, consumedBlock);
+                            break;
+                        }
+                    }
+                } else {
+                    // In creative mode, keep the loaded block continuously
+                    CarvingToolItem.setLoadedMaterial(heldItemStack, consumedBlock);
+                }
                 player.inventoryMenu.broadcastChanges();
             }
         }

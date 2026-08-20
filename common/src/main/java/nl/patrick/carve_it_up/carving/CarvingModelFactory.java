@@ -161,42 +161,84 @@ public class CarvingModelFactory {
         int modifiedCount = 0;
         BlockState activeMaterial = toolMaterial != null ? toolMaterial : data.getOriginalBlockState();
 
-        for (int[] target : targets) {
-            int tx = target[0];
-            int ty = target[1];
-            int tz = target[2];
+        if (mode == CarvingMode.ROTATE_Y_CW || mode == CarvingMode.ROTATE_Y_CCW || mode == CarvingMode.ROTATE_X_UP || mode == CarvingMode.ROTATE_X_DOWN) {
+            Map<Integer, BlockState> rotated = new java.util.HashMap<>();
+            for (Map.Entry<Integer, BlockState> entry : voxelMaterials.entrySet()) {
+                int idx = entry.getKey();
+                int vx = idx % resolution;
+                int vy = (idx / resolution) % resolution;
+                int vz = idx / (resolution * resolution);
 
-            if (tx < 0 || tx >= resolution || ty < 0 || ty >= resolution || tz < 0 || tz >= resolution) {
-                continue;
+                int nx, ny, nz;
+                switch (mode) {
+                    case ROTATE_Y_CW:
+                        nx = resolution - 1 - vz;
+                        ny = vy;
+                        nz = vx;
+                        break;
+                    case ROTATE_Y_CCW:
+                        nx = vz;
+                        ny = vy;
+                        nz = resolution - 1 - vx;
+                        break;
+                    case ROTATE_X_UP:
+                        nx = vx;
+                        ny = resolution - 1 - vz;
+                        nz = vy;
+                        break;
+                    case ROTATE_X_DOWN:
+                    default:
+                        nx = vx;
+                        ny = vz;
+                        nz = resolution - 1 - vy;
+                        break;
+                }
+
+                int newIdx = nx + (ny * resolution) + (nz * resolution * resolution);
+                rotated.put(newIdx, entry.getValue());
             }
+            voxelMaterials.clear();
+            voxelMaterials.putAll(rotated);
+            modifiedCount = 1;
+        } else {
+            for (int[] target : targets) {
+                int tx = target[0];
+                int ty = target[1];
+                int tz = target[2];
 
-            int index = tx + (ty * resolution) + (tz * resolution * resolution);
+                if (tx < 0 || tx >= resolution || ty < 0 || ty >= resolution || tz < 0 || tz >= resolution) {
+                    continue;
+                }
 
-            switch (mode) {
-                case REMOVE:
-                    if (voxelMaterials.containsKey(index)) {
-                        voxelMaterials.remove(index);
-                        modifiedCount++;
-                    }
-                    break;
+                int index = tx + (ty * resolution) + (tz * resolution * resolution);
 
-                case ADD:
-                    if (!voxelMaterials.containsKey(index)) {
-                        voxelMaterials.put(index, activeMaterial);
-                        data.addBlock(activeMaterial.getBlock());
-                        modifiedCount++;
-                    }
-                    break;
+                switch (mode) {
+                    case REMOVE:
+                        if (voxelMaterials.containsKey(index)) {
+                            voxelMaterials.remove(index);
+                            modifiedCount++;
+                        }
+                        break;
 
-                case REPLACE:
-                    if (voxelMaterials.containsKey(index)) {
-                        BlockState previous = voxelMaterials.put(index, activeMaterial);
-                        if (previous != activeMaterial) {
+                    case ADD:
+                        if (!voxelMaterials.containsKey(index)) {
+                            voxelMaterials.put(index, activeMaterial);
                             data.addBlock(activeMaterial.getBlock());
                             modifiedCount++;
                         }
-                    }
-                    break;
+                        break;
+
+                    case REPLACE:
+                        if (voxelMaterials.containsKey(index)) {
+                            BlockState previous = voxelMaterials.get(index);
+                            if (previous != activeMaterial) {
+                                voxelMaterials.put(index, activeMaterial);
+                                data.addBlock(activeMaterial.getBlock());
+                                modifiedCount++;
+                            }
+                        }
+                        break;
+                }
             }
         }
 
@@ -695,6 +737,58 @@ public class CarvingModelFactory {
 
         return shape.optimize();
     }
+
+    // NewStart Populates a CarvedData instance from the initial bounding boxes of the original BlockState
+    public static void populateFromShape(CarvedData carvedData, BlockState state, net.minecraft.world.level.BlockGetter level, net.minecraft.core.BlockPos pos) {
+        int resolution = carvedData.getResolution();
+        carvedData.getVoxelMaterials().clear();
+
+        VoxelShape shape = null;
+        try {
+            if (level != null && pos != null) {
+                shape = state.getShape(level, pos, net.minecraft.world.phys.shapes.CollisionContext.empty());
+            }
+        } catch (Throwable ignored) {}
+
+        if (shape == null || shape.isEmpty()) {
+            shape = Shapes.block();
+        }
+
+        double voxelSize = 1.0 / resolution;
+        double halfVoxel = voxelSize / 2.0;
+
+        for (int z = 0; z < resolution; z++) {
+            for (int y = 0; y < resolution; y++) {
+                for (int x = 0; x < resolution; x++) {
+                    double centerX = (x * voxelSize) + halfVoxel;
+                    double centerY = (y * voxelSize) + halfVoxel;
+                    double centerZ = (z * voxelSize) + halfVoxel;
+
+                    boolean inside = false;
+                    for (net.minecraft.world.phys.AABB aabb : shape.toAabbs()) {
+                        if (centerX >= aabb.minX && centerX <= aabb.maxX &&
+                            centerY >= aabb.minY && centerY <= aabb.maxY &&
+                            centerZ >= aabb.minZ && centerZ <= aabb.maxZ) {
+                            inside = true;
+                            break;
+                        }
+                    }
+
+                    if (inside) {
+                        int index = x + (y * resolution) + (z * resolution * resolution);
+                        carvedData.getVoxelMaterials().put(index, state);
+                    }
+                }
+            }
+        }
+
+        carvedData.rebuildBlockPalette();
+        VoxelShape computedShape = calculateCollisionShape(carvedData);
+        carvedData.setCollisionShape(computedShape);
+        carvedData.setVisualShape(computedShape);
+        carvedData.setInteractionShape(computedShape);
+    }
+    // NewEnd
 
     // --- CUSTOM BLOCK STATE MODEL WRAPPER ---
 

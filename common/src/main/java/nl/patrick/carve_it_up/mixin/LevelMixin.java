@@ -19,15 +19,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Mixin onto Level to detect when a carved block is broken or replaced,
- * drop the custom item with attached voxel data, and clean up chunk data.
+ * drop the custom item with attached voxel data, clean up chunk data on break,
+ * and adaptively update voxel textures when blocks spread (e.g. grass spreading to dirt).
  */
 @Mixin(Level.class)
 public abstract class LevelMixin {
 
-    // NewStart Drop custom carved item and clean up carved data on block break/replacement
+    // NewStart Handle block breaking vs block state transitions (e.g. grass spreading)
     @Inject(
         method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z",
         at = @At("HEAD")
@@ -37,11 +40,10 @@ public abstract class LevelMixin {
         if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
             CarvedData currentCarvedData = CarvingManager.getCarvedData(worldLevel, targetBlockPos);
             if (currentCarvedData != null) {
-                // If the block is being removed (broken to air) or replaced with a different block type
-                if (newBlockState.isAir() || newBlockState.getBlock() != currentCarvedData.getOriginalBlockState().getBlock()) {
 
-                    // If broken on the server, drop the customized ItemStack containing all voxel data
-                    if (!worldLevel.isClientSide() && newBlockState.isAir()) {
+                // 1. BLOCK BROKEN TO AIR: drop custom carved item with data and remove container
+                if (newBlockState.isAir()) {
+                    if (!worldLevel.isClientSide()) {
                         ItemStack dropStack = CarvedItemHelper.createCarvedBlockDrop(currentCarvedData);
                         if (!dropStack.isEmpty()) {
                             Block.popResource(worldLevel, targetBlockPos, dropStack);
@@ -60,6 +62,32 @@ public abstract class LevelMixin {
                             Collections.emptyMap()
                         );
                         Services.NETWORK.sendToTrackingClients(worldLevel, targetBlockPos, removalPayload);
+                    } else {
+                        ClientCarvingCache.invalidate(targetBlockPos);
+                    }
+                }
+                // 2. BLOCK STATE SPREAD / IN-PLACE CONVERSION (e.g. grass spreading to dirt): update base voxels smoothly
+                else if (newBlockState.getBlock() != currentCarvedData.getOriginalBlockState().getBlock()) {
+                    Block oldBaseBlock = currentCarvedData.getOriginalBlockState().getBlock();
+                    for (Map.Entry<Integer, BlockState> voxelEntry : currentCarvedData.getVoxelMaterials().entrySet()) {
+                        if (voxelEntry.getValue() != null && voxelEntry.getValue().getBlock() == oldBaseBlock) {
+                            voxelEntry.setValue(newBlockState);
+                        }
+                    }
+
+                    currentCarvedData.rebuildBlockPalette();
+                    currentCarvedData.incrementVersion();
+
+                    if (!worldLevel.isClientSide()) {
+                        SyncCarvedDataPayload updatePayload = new SyncCarvedDataPayload(
+                            targetBlockPos,
+                            newBlockState,
+                            currentCarvedData.getOwnerUuid(),
+                            currentCarvedData.getResolution(),
+                            currentCarvedData.getVersion(),
+                            new HashMap<>(currentCarvedData.getVoxelMaterials())
+                        );
+                        Services.NETWORK.sendToTrackingClients(worldLevel, targetBlockPos, updatePayload);
                     } else {
                         ClientCarvingCache.invalidate(targetBlockPos);
                     }
