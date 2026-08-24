@@ -155,6 +155,67 @@ public class CarvingModelFactory {
                     }
                 }
                 break;
+
+            case CONNECTED_FACE: {
+                Direction.Axis faceAxis = targetedFace.getAxis();
+                boolean[][] visited2D = new boolean[resolution][resolution];
+                java.util.Queue<int[]> queue = new java.util.ArrayDeque<>();
+
+                int startU, startV;
+                if (faceAxis == Direction.Axis.X) {
+                    startU = targetY;
+                    startV = targetZ;
+                } else if (faceAxis == Direction.Axis.Y) {
+                    startU = targetX;
+                    startV = targetZ;
+                } else { // Z
+                    startU = targetX;
+                    startV = targetY;
+                }
+
+                if (startU >= 0 && startU < resolution && startV >= 0 && startV < resolution) {
+                    int startIdx = (faceAxis == Direction.Axis.X) ? (targetX + startU * resolution + startV * resolution * resolution)
+                                 : ((faceAxis == Direction.Axis.Y) ? (startU + targetY * resolution + startV * resolution * resolution)
+                                 : (startU + startV * resolution + targetZ * resolution * resolution));
+
+                    boolean isAddMode = (mode == CarvingMode.ADD);
+                    if (isAddMode || voxelMaterials.containsKey(startIdx)) {
+                        visited2D[startU][startV] = true;
+                        queue.add(new int[]{startU, startV});
+
+                        int[][] neighborOffsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+                        while (!queue.isEmpty()) {
+                            int[] current = queue.poll();
+                            int cu = current[0];
+                            int cv = current[1];
+
+                            int targetVoxelX = (faceAxis == Direction.Axis.X) ? targetX : ((faceAxis == Direction.Axis.Y) ? cu : cu);
+                            int targetVoxelY = (faceAxis == Direction.Axis.X) ? cu : ((faceAxis == Direction.Axis.Y) ? targetY : cv);
+                            int targetVoxelZ = (faceAxis == Direction.Axis.X) ? cv : ((faceAxis == Direction.Axis.Y) ? cv : targetZ);
+
+                            targets.add(new int[]{targetVoxelX, targetVoxelY, targetVoxelZ});
+
+                            for (int[] offset : neighborOffsets) {
+                                int nu = cu + offset[0];
+                                int nv = cv + offset[1];
+
+                                if (nu >= 0 && nu < resolution && nv >= 0 && nv < resolution && !visited2D[nu][nv]) {
+                                    int nIdx = (faceAxis == Direction.Axis.X) ? (targetX + nu * resolution + nv * resolution * resolution)
+                                             : ((faceAxis == Direction.Axis.Y) ? (nu + targetY * resolution + nv * resolution * resolution)
+                                             : (nu + nv * resolution + targetZ * resolution * resolution));
+
+                                    if (isAddMode || voxelMaterials.containsKey(nIdx)) {
+                                        visited2D[nu][nv] = true;
+                                        queue.add(new int[]{nu, nv});
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
         }
 
         // 3. Apply action based on mode

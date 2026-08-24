@@ -11,7 +11,8 @@
         "LevelChunkMixin",
         "LevelMixin",
         "PlayerChunkSenderMixin",
-        "SerializableChunkDataMixin"
+        "SerializableChunkDataMixin",
+        "ServerGamePacketListenerImplMixin"
     ],
     "client": [
         "GuiMixin",

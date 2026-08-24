@@ -3,12 +3,10 @@
 package nl.patrick.carve_it_up.mixin;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import nl.patrick.carve_it_up.carving.CarvedData;
-import nl.patrick.carve_it_up.carving.CarvedItemHelper;
 import nl.patrick.carve_it_up.carving.CarvingManager;
 import nl.patrick.carve_it_up.carving.ClientCarvingCache;
 import nl.patrick.carve_it_up.network.SyncCarvedDataPayload;
@@ -24,8 +22,8 @@ import java.util.Map;
 
 /**
  * Mixin onto Level to detect when a carved block is broken or replaced,
- * drop the custom item with attached voxel data, clean up chunk data on break,
- * and adaptively update voxel textures when blocks spread (e.g. grass spreading to dirt).
+ * clean up chunk data on break, and adaptively update voxel textures when
+ * blocks spread (e.g. grass spreading to dirt).
  */
 @Mixin(Level.class)
 public abstract class LevelMixin {
@@ -41,15 +39,8 @@ public abstract class LevelMixin {
             CarvedData currentCarvedData = CarvingManager.getCarvedData(worldLevel, targetBlockPos);
             if (currentCarvedData != null) {
 
-                // 1. BLOCK BROKEN TO AIR: drop custom carved item with data and remove container
+                // 1. BLOCK BROKEN TO AIR: clean up carved data (item drop is handled authoritatively by BlockBehaviour.getDrops)
                 if (newBlockState.isAir()) {
-                    if (!worldLevel.isClientSide()) {
-                        ItemStack dropStack = CarvedItemHelper.createCarvedBlockDrop(currentCarvedData);
-                        if (!dropStack.isEmpty()) {
-                            Block.popResource(worldLevel, targetBlockPos, dropStack);
-                        }
-                    }
-
                     CarvingManager.removeCarvedData(worldLevel, targetBlockPos);
 
                     if (!worldLevel.isClientSide()) {
