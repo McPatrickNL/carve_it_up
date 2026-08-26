@@ -20,8 +20,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Mixin into ServerGamePacketListenerImpl to give and select the carved block on middle-click (Pick Block)
- * even if it is not already present in the player's inventory.
+ * Mixin into ServerGamePacketListenerImpl to handle middle-click (Pick Block) on carved blocks:
+ * - In Survival mode: Selects the existing carved block from inventory if present.
+ * - In Creative mode: Gives and selects the exact carved block if not present in inventory.
+ * Authoritatively handled server-side to ensure server and client stay synchronized.
  */
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerImplMixin {
@@ -29,7 +31,7 @@ public abstract class ServerGamePacketListenerImplMixin {
     @Shadow
     public ServerPlayer player;
 
-    // NewStart Handle middle-click pick block for carved blocks
+    // NewStart Handle middle-click pick block authoritatively on server
     @Inject(
         method = "handlePickItemFromBlock(Lnet/minecraft/network/protocol/game/ServerboundPickItemFromBlockPacket;)V",
         at = @At("HEAD"),
@@ -61,13 +63,14 @@ public abstract class ServerGamePacketListenerImplMixin {
                         } else {
                             inventory.pickSlot(matchingSlot);
                         }
-                    } else {
-                        // Give the carved block and select it in the player's hand even if not in inventory
+                        this.player.connection.send(new ClientboundSetHeldSlotPacket(inventory.getSelectedSlot()));
+                        this.player.inventoryMenu.broadcastChanges();
+                    } else if (this.player.hasInfiniteMaterials()) {
+                        // In Creative mode, grant the item directly and select it in the active hand
                         inventory.addAndPickItem(carvedDrop);
+                        this.player.connection.send(new ClientboundSetHeldSlotPacket(inventory.getSelectedSlot()));
+                        this.player.inventoryMenu.broadcastChanges();
                     }
-
-                    this.player.connection.send(new ClientboundSetHeldSlotPacket(inventory.getSelectedSlot()));
-                    this.player.inventoryMenu.broadcastChanges();
                     callbackInfo.cancel();
                 }
             }

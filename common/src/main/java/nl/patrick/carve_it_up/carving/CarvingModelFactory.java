@@ -161,25 +161,30 @@ public class CarvingModelFactory {
                 boolean[][] visited2D = new boolean[resolution][resolution];
                 java.util.Queue<int[]> queue = new java.util.ArrayDeque<>();
 
+                boolean isAddMode = (mode == CarvingMode.ADD);
+
+                int clickedX = isAddMode ? (targetX - targetedFace.getStepX()) : targetX;
+                int clickedY = isAddMode ? (targetY - targetedFace.getStepY()) : targetY;
+                int clickedZ = isAddMode ? (targetZ - targetedFace.getStepZ()) : targetZ;
+
                 int startU, startV;
                 if (faceAxis == Direction.Axis.X) {
-                    startU = targetY;
-                    startV = targetZ;
+                    startU = clickedY;
+                    startV = clickedZ;
                 } else if (faceAxis == Direction.Axis.Y) {
-                    startU = targetX;
-                    startV = targetZ;
+                    startU = clickedX;
+                    startV = clickedZ;
                 } else { // Z
-                    startU = targetX;
-                    startV = targetY;
+                    startU = clickedX;
+                    startV = clickedY;
                 }
 
                 if (startU >= 0 && startU < resolution && startV >= 0 && startV < resolution) {
-                    int startIdx = (faceAxis == Direction.Axis.X) ? (targetX + startU * resolution + startV * resolution * resolution)
-                                 : ((faceAxis == Direction.Axis.Y) ? (startU + targetY * resolution + startV * resolution * resolution)
-                                 : (startU + startV * resolution + targetZ * resolution * resolution));
+                    int startIdx = (faceAxis == Direction.Axis.X) ? (clickedX + startU * resolution + startV * resolution * resolution)
+                                 : ((faceAxis == Direction.Axis.Y) ? (startU + clickedY * resolution + startV * resolution * resolution)
+                                 : (startU + startV * resolution + clickedZ * resolution * resolution));
 
-                    boolean isAddMode = (mode == CarvingMode.ADD);
-                    if (isAddMode || voxelMaterials.containsKey(startIdx)) {
+                    if (voxelMaterials.containsKey(startIdx)) {
                         visited2D[startU][startV] = true;
                         queue.add(new int[]{startU, startV});
 
@@ -201,11 +206,11 @@ public class CarvingModelFactory {
                                 int nv = cv + offset[1];
 
                                 if (nu >= 0 && nu < resolution && nv >= 0 && nv < resolution && !visited2D[nu][nv]) {
-                                    int nIdx = (faceAxis == Direction.Axis.X) ? (targetX + nu * resolution + nv * resolution * resolution)
-                                             : ((faceAxis == Direction.Axis.Y) ? (nu + targetY * resolution + nv * resolution * resolution)
-                                             : (nu + nv * resolution + targetZ * resolution * resolution));
+                                    int nIdx = (faceAxis == Direction.Axis.X) ? (clickedX + nu * resolution + nv * resolution * resolution)
+                                             : ((faceAxis == Direction.Axis.Y) ? (nu + clickedY * resolution + nv * resolution * resolution)
+                                             : (nu + nv * resolution + clickedZ * resolution * resolution));
 
-                                    if (isAddMode || voxelMaterials.containsKey(nIdx)) {
+                                    if (voxelMaterials.containsKey(nIdx)) {
                                         visited2D[nu][nv] = true;
                                         queue.add(new int[]{nu, nv});
                                     }

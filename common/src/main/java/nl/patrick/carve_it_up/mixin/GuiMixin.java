@@ -45,6 +45,7 @@ public abstract class GuiMixin {
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void onExtractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (this.minecraft.player == null || this.minecraft.level == null) return;
+        if (this.minecraft.options.hideGui) return;
 
         // Render our system overlays only when the carving tool is held in hand
         if (!CarvingToolClientState.isHoldingCarvingTool()) {

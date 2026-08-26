@@ -29,6 +29,10 @@ public class CarvingToolClientState {
     public static int activePatternIndex = 0; // Cycles CarvingPattern
     public static int activeMaterialIndex = 0; // Cycles available materials
 
+    // NewStart Stably persist explicitly selected material across crosshair movement
+    private static Block explicitlySelectedMaterial = null;
+    // NewEnd
+
     public static final int DEFAULT_MULTI_VOXEL_WIDTH = 3;
 
     /**
@@ -124,14 +128,27 @@ public class CarvingToolClientState {
         return carvingPatterns[Math.abs(activePatternIndex % carvingPatterns.length)];
     }
 
+    // NewStart Return stably selected material
     public static Block getSelectedMaterialBlock() {
         List<Block> availableMaterials = getAvailableMaterials();
+        if (explicitlySelectedMaterial != null) {
+            if (availableMaterials.contains(explicitlySelectedMaterial)) {
+                return explicitlySelectedMaterial;
+            }
+            // If crosshair momentarily leaves or points at air, retain the user's chosen material
+            return explicitlySelectedMaterial;
+        }
         if (!availableMaterials.isEmpty()) {
             int selectedIndex = Math.abs(activeMaterialIndex % availableMaterials.size());
             return availableMaterials.get(selectedIndex);
         }
         return getFallbackLookedAtBlock();
     }
+
+    public static void setSelectedMaterialBlock(Block block) {
+        explicitlySelectedMaterial = block;
+    }
+    // NewEnd
 
     /**
      * Dual-axis scrolling router triggered by mouse wheel events.
@@ -167,7 +184,13 @@ public class CarvingToolClientState {
                 List<Block> availableMaterials = getAvailableMaterials();
                 if (!availableMaterials.isEmpty()) {
                     int total = availableMaterials.size();
-                    activeMaterialIndex = (activeMaterialIndex + direction + total) % total;
+                    int currentIndex = (explicitlySelectedMaterial != null && availableMaterials.contains(explicitlySelectedMaterial))
+                        ? availableMaterials.indexOf(explicitlySelectedMaterial)
+                        : (activeMaterialIndex % total);
+                    if (currentIndex < 0) currentIndex = 0;
+                    int nextIndex = (currentIndex + direction + total) % total;
+                    explicitlySelectedMaterial = availableMaterials.get(nextIndex);
+                    activeMaterialIndex = nextIndex;
                 } else {
                     activeMaterialIndex = 0;
                 }
@@ -191,9 +214,9 @@ public class CarvingToolClientState {
         Block material = getSelectedMaterialBlock();
 
         Component statusMessage = Component.literal("Mode: ")
-            .append(Component.literal(mode.name()).withStyle(activeCategory == 0 ? ChatFormatting.YELLOW : ChatFormatting.GOLD))
+            .append(Component.literal(mode.getName()).withStyle(activeCategory == 0 ? ChatFormatting.YELLOW : ChatFormatting.GOLD))
             .append(Component.literal(" | Pattern: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.literal(pattern.name()).withStyle(activeCategory == 1 ? ChatFormatting.AQUA : ChatFormatting.DARK_AQUA))
+            .append(Component.literal(pattern.getName()).withStyle(activeCategory == 1 ? ChatFormatting.AQUA : ChatFormatting.DARK_AQUA))
             .append(Component.literal(" | Material: ").withStyle(ChatFormatting.GRAY))
             .append(Component.translatable(material.getDescriptionId()).withStyle(activeCategory == 2 ? ChatFormatting.GREEN : ChatFormatting.DARK_GREEN));
 
