@@ -102,20 +102,51 @@ public class CarvingModelFactory {
 
         switch (pattern) {
             case VOXEL:
-                targets.add(new int[]{targetX, targetY, targetZ});
-                break;
+            case MULTI_VOXEL_2:
+            case MULTI_VOXEL_3:
+            case MULTI_VOXEL_4:
+            case PLANE_2:
+            case PLANE_3:
+            case PLANE_4: {
+                int brushWidth = pattern.getWidth();
+                int brushDepth = pattern.getDepth();
+                int halfLower = (brushWidth - 1) / 2;
+                int halfUpper = brushWidth / 2;
 
-            case MULTI_VOXEL:
-                int halfLower = (width - 1) / 2;
-                int halfUpper = width / 2;
-                for (int deltaX = -halfLower; deltaX <= halfUpper; deltaX++) {
-                    for (int deltaY = -halfLower; deltaY <= halfUpper; deltaY++) {
-                        for (int deltaZ = -halfLower; deltaZ <= halfUpper; deltaZ++) {
-                            targets.add(new int[]{targetX + deltaX, targetY + deltaY, targetZ + deltaZ});
+                boolean isAddMode = (mode == CarvingMode.ADD);
+                int stepX = isAddMode ? targetedFace.getStepX() : -targetedFace.getStepX();
+                int stepY = isAddMode ? targetedFace.getStepY() : -targetedFace.getStepY();
+                int stepZ = isAddMode ? targetedFace.getStepZ() : -targetedFace.getStepZ();
+
+                Direction.Axis normalAxis = targetedFace.getAxis();
+
+                for (int d = 0; d < brushDepth; d++) {
+                    int baseNormX = targetX + stepX * d;
+                    int baseNormY = targetY + stepY * d;
+                    int baseNormZ = targetZ + stepZ * d;
+
+                    for (int deltaU = -halfLower; deltaU <= halfUpper; deltaU++) {
+                        for (int deltaV = -halfLower; deltaV <= halfUpper; deltaV++) {
+                            int vx, vy, vz;
+                            if (normalAxis == Direction.Axis.X) {
+                                vx = baseNormX;
+                                vy = baseNormY + deltaU;
+                                vz = baseNormZ + deltaV;
+                            } else if (normalAxis == Direction.Axis.Y) {
+                                vx = baseNormX + deltaU;
+                                vy = baseNormY;
+                                vz = baseNormZ + deltaV;
+                            } else { // Z
+                                vx = baseNormX + deltaU;
+                                vy = baseNormY + deltaV;
+                                vz = baseNormZ;
+                            }
+                            targets.add(new int[]{vx, vy, vz});
                         }
                     }
                 }
                 break;
+            }
 
             case LINE:
                 // Step inward into the block along the specified direction

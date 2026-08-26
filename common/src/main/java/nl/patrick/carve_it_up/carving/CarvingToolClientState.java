@@ -73,6 +73,10 @@ public class CarvingToolClientState {
         if (minecraftInstance.level != null && minecraftInstance.hitResult instanceof BlockHitResult blockHitResult && blockHitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos targetBlockPos = blockHitResult.getBlockPos();
             CarvedData carvedData = CarvingManager.getCarvedData(minecraftInstance.level, targetBlockPos);
+            if (carvedData == null && blockHitResult.getDirection() != null) {
+                carvedData = CarvingManager.getCarvedData(minecraftInstance.level, targetBlockPos.relative(blockHitResult.getDirection()));
+            }
+
             if (carvedData != null) {
                 for (Block block : carvedData.getBlocks()) {
                     if (block != null && block != Blocks.AIR && !availableBlocksList.contains(block)) {
@@ -113,6 +117,13 @@ public class CarvingToolClientState {
         Minecraft minecraftInstance = Minecraft.getInstance();
         if (minecraftInstance.level != null && minecraftInstance.hitResult instanceof BlockHitResult blockHitResult && blockHitResult.getType() == HitResult.Type.BLOCK) {
             BlockPos targetBlockPos = blockHitResult.getBlockPos();
+            CarvedData cd = CarvingManager.getCarvedData(minecraftInstance.level, targetBlockPos);
+            if (cd == null && blockHitResult.getDirection() != null) {
+                cd = CarvingManager.getCarvedData(minecraftInstance.level, targetBlockPos.relative(blockHitResult.getDirection()));
+            }
+            if (cd != null) {
+                return cd.getOriginalBlockState().getBlock();
+            }
             return minecraftInstance.level.getBlockState(targetBlockPos).getBlock();
         }
         return Blocks.AIR;
@@ -145,8 +156,53 @@ public class CarvingToolClientState {
         return getFallbackLookedAtBlock();
     }
 
+    public static Block getExplicitlySelectedMaterial() {
+        return explicitlySelectedMaterial;
+    }
+
     public static void setSelectedMaterialBlock(Block block) {
         explicitlySelectedMaterial = block;
+    }
+
+    /**
+     * Resolves the correct material to place in targetBlockPos:
+     * 1. Held tool's loaded material (if any).
+     * 2. Explicitly selected material (only if present in targetBlockPos's palette).
+     * 3. Target block's own base original material.
+     */
+    public static BlockState getMaterialForTargetBlock(net.minecraft.world.level.Level level, BlockPos targetPos, net.minecraft.world.entity.player.Player player) {
+        CarvedData cd = CarvingManager.getCarvedData(level, targetPos);
+        BlockState baseState = (cd != null) ? cd.getOriginalBlockState() : level.getBlockState(targetPos);
+
+        // 1. Tool loaded material
+        if (player != null) {
+            ItemStack heldTool = player.getMainHandItem();
+            if (heldTool.getItem() instanceof CarvingToolItem && CarvingToolItem.hasLoadedMaterial(heldTool)) {
+                Block loaded = CarvingToolItem.getLoadedMaterial(heldTool);
+                if (loaded != Blocks.AIR) {
+                    return loaded.defaultBlockState();
+                }
+            }
+        }
+
+        // 2. Explicitly selected material (if valid for target block)
+        if (explicitlySelectedMaterial != null && explicitlySelectedMaterial != Blocks.AIR) {
+            if (cd != null) {
+                if (cd.getBlocks().contains(explicitlySelectedMaterial)) {
+                    return explicitlySelectedMaterial.defaultBlockState();
+                }
+                for (BlockState state : cd.getVoxelMaterials().values()) {
+                    if (state != null && state.getBlock() == explicitlySelectedMaterial) {
+                        return explicitlySelectedMaterial.defaultBlockState();
+                    }
+                }
+            } else if (baseState.getBlock() == explicitlySelectedMaterial) {
+                return explicitlySelectedMaterial.defaultBlockState();
+            }
+        }
+
+        // 3. Fallback strictly to target block's base material
+        return baseState;
     }
     // NewEnd
 
