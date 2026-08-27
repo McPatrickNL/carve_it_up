@@ -43,10 +43,12 @@ public class FabricMod implements ModInitializer {
 
         // 2. Populate your multiplatform creative tab on Fabric
         CreativeModeTabEvents.modifyOutputEvent(tabKey).register(content -> {
-            content.accept(ModItems.EXAMPLE_ITEM.get());
-            content.accept(ModBlocks.EXAMPLE_BLOCK_ITEM.get());
-            content.accept(ModItems.CARVING_TOOL.get());
-            content.accept(ModItems.IRON_CARVING_TOOL.get());
+            content.accept(ModItems.STONE_CARVING_TOOLS.get());
+            content.accept(ModItems.COPPER_CARVING_TOOLS.get());
+            content.accept(ModItems.IRON_CARVING_TOOLS.get());
+            content.accept(ModItems.GOLDEN_CARVING_TOOLS.get());
+            content.accept(ModItems.DIAMOND_CARVING_TOOLS.get());
+            content.accept(ModItems.NETHERITE_CARVING_TOOLS.get());
         });
 
         // NewStart Register payload types for C2S and S2C communication on Fabric

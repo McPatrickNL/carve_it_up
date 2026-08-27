@@ -1,0 +1,9 @@
+{
+  "result": {
+    "id": "carve_it_up:netherite_carving_tools"
+  },
+  "type": "minecraft:smithing_transform",
+  "base": "carve_it_up:diamond_carving_tools",
+  "template": "minecraft:netherite_upgrade_smithing_template",
+  "addition": "#minecraft:netherite_tool_materials"
+}

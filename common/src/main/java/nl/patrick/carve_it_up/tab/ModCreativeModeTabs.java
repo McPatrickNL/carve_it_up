@@ -18,7 +18,7 @@ public class ModCreativeModeTabs
                     "carve_it_up_tab",
                     () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, 1)
                                          .title(Component.translatable("itemGroup.carve_it_up"))
-                                         .icon(ModItems.EXAMPLE_ITEM.get()::getDefaultInstance)
+                                         .icon(ModItems.IRON_CARVING_TOOLS.get()::getDefaultInstance)
                                          // We leave displayItems out of the shared code to avoid compiler bugs
                                          .build());
     

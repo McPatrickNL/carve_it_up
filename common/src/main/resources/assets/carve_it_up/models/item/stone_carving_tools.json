@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "carve_it_up:item/stone_carving_tools"
+  }
+}

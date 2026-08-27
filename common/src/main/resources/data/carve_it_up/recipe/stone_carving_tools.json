@@ -1,0 +1,16 @@
+{
+  "category": "equipment",
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " II",
+    "S S",
+    "I S"
+  ],
+  "result": {
+    "id": "carve_it_up:stone_carving_tools"
+  },
+  "key": {
+    "I": "#minecraft:stone_tool_materials",
+    "S": "minecraft:stick"
+  }
+}

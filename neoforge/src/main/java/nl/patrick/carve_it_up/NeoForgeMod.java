@@ -44,10 +44,12 @@ public class NeoForgeMod { // Converted from Allman style brace
     private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {
         // Check if the current tab being built matches your custom multiplatform tab
         if (event.getTab() == ModCreativeModeTabs.CARVE_IT_UP_TAB.get()) {
-            event.accept(ModItems.EXAMPLE_ITEM.get());
-            event.accept(ModBlocks.EXAMPLE_BLOCK_ITEM.get());
-            event.accept(ModItems.CARVING_TOOL.get());
-            event.accept(ModItems.IRON_CARVING_TOOL.get());
+            event.accept(ModItems.STONE_CARVING_TOOLS.get());
+            event.accept(ModItems.COPPER_CARVING_TOOLS.get());
+            event.accept(ModItems.IRON_CARVING_TOOLS.get());
+            event.accept(ModItems.GOLDEN_CARVING_TOOLS.get());
+            event.accept(ModItems.DIAMOND_CARVING_TOOLS.get());
+            event.accept(ModItems.NETHERITE_CARVING_TOOLS.get());
         }
     }
 

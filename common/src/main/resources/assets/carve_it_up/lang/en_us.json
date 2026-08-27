@@ -4,9 +4,12 @@
 
   "block.carve_it_up.example_block": "Example Block",
 
-  "item.carve_it_up.example_item": "Example Item",
-  "item.carve_it_up.carving_tool": "Carving Tool",
-  "item.carve_it_up.iron_carving_tool": "Iron Carving Tool",
+  "item.carve_it_up.stone_carving_tools": "Stone Carving Tools",
+  "item.carve_it_up.copper_carving_tools": "Copper Carving Tools",
+  "item.carve_it_up.iron_carving_tools": "Iron Carving Tools",
+  "item.carve_it_up.golden_carving_tools": "Golden Carving Tools",
+  "item.carve_it_up.diamond_carving_tools": "Diamond Carving Tools",
+  "item.carve_it_up.netherite_carving_tools": "Netherite Carving Tools",
 
   "key.category.carve_it_up.carve_it_up": "Carve It Up",
   "carve_it_up.key.category_key": "Category Selector (Hold + Scroll)",
