@@ -211,21 +211,60 @@ public class CarvingToolItem extends Item {
             return InteractionResult.PASS;
         }
 
-        // 2. RIGHT CLICK IN MATERIAL CATEGORY (OR WITH LOADED MATERIAL ON CARVED BLOCK) = CHANGE BASE MATERIAL
-        if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
-            if (worldLevel.isClientSide()) {
-                if (nl.patrick.carve_it_up.carving.CarvingToolClientState.activeCategory == 2) {
+        // 2. RIGHT CLICK ACTIONS (Replace Base, Copy, Paste)
+        if (worldLevel.isClientSide()) {
+            nl.patrick.carve_it_up.carving.RightClickMode rightClickMode = nl.patrick.carve_it_up.carving.CarvingToolClientState.getSelectedRightClickMode();
+
+            if (rightClickMode == nl.patrick.carve_it_up.carving.RightClickMode.REPLACE_BASE) {
+                if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
                     Block selectedMaterial = nl.patrick.carve_it_up.carving.CarvingToolClientState.getSelectedMaterialBlock();
                     if (selectedMaterial != null && selectedMaterial != Blocks.AIR) {
                         Services.NETWORK.sendToServer(new nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload(targetBlockPos, selectedMaterial.defaultBlockState()));
                         return InteractionResult.SUCCESS;
                     }
                 }
+            } else if (rightClickMode == nl.patrick.carve_it_up.carving.RightClickMode.COPY) {
+                if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
+                    CarvedData cd = CarvingManager.getCarvedData(worldLevel, targetBlockPos);
+                    if (cd != null) {
+                        nl.patrick.carve_it_up.carving.CarvingToolClientState.setClipboard(cd.getResolution(), cd.getVoxelMaterials());
+                        net.minecraft.client.Minecraft.getInstance().gui.setOverlayMessage(
+                            Component.literal("Copied carving data to clipboard!").withStyle(ChatFormatting.GREEN),
+                            false
+                        );
+                        return InteractionResult.SUCCESS;
+                    }
+                } else {
+                    net.minecraft.client.Minecraft.getInstance().gui.setOverlayMessage(
+                        Component.literal("Cannot copy: Block is not carved!").withStyle(ChatFormatting.RED),
+                        false
+                    );
+                    return InteractionResult.FAIL;
+                }
+            } else if (rightClickMode == nl.patrick.carve_it_up.carving.RightClickMode.PASTE) {
+                if (!nl.patrick.carve_it_up.carving.CarvingToolClientState.hasClipboard()) {
+                    net.minecraft.client.Minecraft.getInstance().gui.setOverlayMessage(
+                        Component.literal("Clipboard is empty! Copy a carved block first.").withStyle(ChatFormatting.RED),
+                        false
+                    );
+                    return InteractionResult.FAIL;
+                } else {
+                    var cb = nl.patrick.carve_it_up.carving.CarvingToolClientState.getClipboard();
+                    Services.NETWORK.sendToServer(new nl.patrick.carve_it_up.network.RequestPasteCarvingDataPayload(
+                        targetBlockPos,
+                        cb.resolution(),
+                        cb.voxelMaterials()
+                    ));
+                    net.minecraft.client.Minecraft.getInstance().gui.setOverlayMessage(
+                        Component.literal("Pasted carving data!").withStyle(ChatFormatting.GREEN),
+                        false
+                    );
+                    return InteractionResult.SUCCESS;
+                }
             }
-            return InteractionResult.PASS;
         }
 
-        // 3. NORMAL RIGHT CLICK = ADD CARVED DATA CONTAINER
+        // 3. NORMAL RIGHT CLICK = ADD CARVED DATA CONTAINER (if not yet carved)
         if (!CarvingManager.isCarved(worldLevel, targetBlockPos)) {
             UUID ownerUuid = context.getPlayer() != null ? context.getPlayer().getUUID() : UUID.randomUUID();
             int gridResolution = 16;

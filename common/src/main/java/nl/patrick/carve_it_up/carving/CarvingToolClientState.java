@@ -15,24 +15,44 @@ import net.minecraft.world.phys.HitResult;
 import nl.patrick.carve_it_up.item.CarvingToolItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static nl.patrick.carve_it_up.carving.CarvingKeyBinds.CATEGORY_KEY;
 import static nl.patrick.carve_it_up.carving.CarvingKeyBinds.SUBMENU_KEY;
 
 public class CarvingToolClientState {
 
-    // 0 = Mode, 1 = Pattern, 2 = Material
-    public static int activeCategory = 0;
+    // 0 = RightClickMode, 1 = Mode, 2 = Pattern, 3 = Material
+    public static int activeCategory = 1;
 
+    public static int activeRightClickIndex = 0; // Cycles RightClickMode
     public static int activeModeIndex = 0; // Cycles CarvingMode
     public static int activePatternIndex = 0; // Cycles CarvingPattern
     public static int activeMaterialIndex = 0; // Cycles available materials
+
+    // Client-side clipboard for copying and pasting 3D voxel grids
+    private static CarvedClipboardData clipboard = null;
 
     // Stably persist explicitly selected material across crosshair movement
     private static Block explicitlySelectedMaterial = null;
 
     public static final int DEFAULT_MULTI_VOXEL_WIDTH = 3;
+
+    public record CarvedClipboardData(int resolution, Map<Integer, BlockState> voxelMaterials) {}
+
+    public static void setClipboard(int resolution, Map<Integer, BlockState> materials) {
+        clipboard = new CarvedClipboardData(resolution, new HashMap<>(materials));
+    }
+
+    public static CarvedClipboardData getClipboard() {
+        return clipboard;
+    }
+
+    public static boolean hasClipboard() {
+        return clipboard != null && !clipboard.voxelMaterials().isEmpty();
+    }
 
     /**
      * Checks if the player is holding the carving tool in their main hand.
@@ -128,6 +148,11 @@ public class CarvingToolClientState {
         return Blocks.AIR;
     }
 
+    public static RightClickMode getSelectedRightClickMode() {
+        RightClickMode[] rightClickModes = RightClickMode.values();
+        return rightClickModes[Math.abs(activeRightClickIndex % rightClickModes.length)];
+    }
+
     public static CarvingMode getSelectedMode() {
         CarvingMode[] carvingModes = CarvingMode.values();
         return carvingModes[Math.abs(activeModeIndex % carvingModes.length)];
@@ -221,18 +246,21 @@ public class CarvingToolClientState {
         int direction = scrollAmount > 0 ? -1 : 1;
 
         if (categoryPressed) {
-            activeCategory = (activeCategory + direction + 3) % 3;
+            activeCategory = (activeCategory + direction + 4) % 4;
             displayStatusOverlay();
             return true;
         } else {
             direction = -direction; // invert for submenu
             if (activeCategory == 0) {
+                int total = RightClickMode.values().length;
+                activeRightClickIndex = (activeRightClickIndex + direction + total) % total;
+            } else if (activeCategory == 1) {
                 int total = CarvingMode.values().length;
                 activeModeIndex = (activeModeIndex + direction + total) % total;
-            } else if (activeCategory == 1) {
+            } else if (activeCategory == 2) {
                 int total = CarvingPattern.values().length;
                 activePatternIndex = (activePatternIndex + direction + total) % total;
-            } else if (activeCategory == 2) {
+            } else if (activeCategory == 3) {
                 List<Block> availableMaterials = getAvailableMaterials();
                 if (!availableMaterials.isEmpty()) {
                     int total = availableMaterials.size();
@@ -261,16 +289,19 @@ public class CarvingToolClientState {
             return;
         }
 
+        RightClickMode rightClickMode = getSelectedRightClickMode();
         CarvingMode mode = getSelectedMode();
         CarvingPattern pattern = getSelectedPattern();
         Block material = getSelectedMaterialBlock();
 
-        Component statusMessage = Component.literal("Mode: ")
-            .append(Component.literal(mode.getName()).withStyle(activeCategory == 0 ? ChatFormatting.YELLOW : ChatFormatting.GOLD))
+        Component statusMessage = Component.literal("Right-Click: ")
+            .append(Component.literal(rightClickMode.getName()).withStyle(activeCategory == 0 ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.DARK_PURPLE))
+            .append(Component.literal(" | Mode: ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal(mode.getName()).withStyle(activeCategory == 1 ? ChatFormatting.YELLOW : ChatFormatting.GOLD))
             .append(Component.literal(" | Pattern: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.literal(pattern.getName()).withStyle(activeCategory == 1 ? ChatFormatting.AQUA : ChatFormatting.DARK_AQUA))
+            .append(Component.literal(pattern.getName()).withStyle(activeCategory == 2 ? ChatFormatting.AQUA : ChatFormatting.DARK_AQUA))
             .append(Component.literal(" | Material: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.translatable(material.getDescriptionId()).withStyle(activeCategory == 2 ? ChatFormatting.GREEN : ChatFormatting.DARK_GREEN));
+            .append(Component.translatable(material.getDescriptionId()).withStyle(activeCategory == 3 ? ChatFormatting.GREEN : ChatFormatting.DARK_GREEN));
 
         minecraftInstance.gui.setOverlayMessage(statusMessage, false);
     }

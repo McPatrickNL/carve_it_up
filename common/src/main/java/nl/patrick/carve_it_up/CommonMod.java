@@ -44,6 +44,7 @@ public class CommonMod
     public static void init()
     {
         LOGGER.info("Initialising Common Setup for Carve It Up.");
+        nl.patrick.carve_it_up.config.CarveItUpConfig.load();
         ModBlocks.init();
         ModItems.init();
         ModCreativeModeTabs.init();

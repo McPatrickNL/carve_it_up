@@ -260,4 +260,75 @@ public class CarvingNetworkHandlers {
         );
         Services.NETWORK.sendToTrackingClients(worldLevel, targetPosition, syncPayload);
     }
+
+    /**
+     * Server-side handler for pasting copied carving data onto a block.
+     */
+    public static void handlePasteCarvingDataRequest(RequestPasteCarvingDataPayload payload, ServerPlayer player) {
+        Level worldLevel = player.level();
+        BlockPos targetPosition = payload.targetBlockPos();
+
+        // 1. Tool still held?
+        ItemStack heldItemStack = player.getMainHandItem();
+        if (!(heldItemStack.getItem() instanceof CarvingToolItem)) {
+            return;
+        }
+
+        // 2. Lock not held by someone else?
+        if (CarvingManager.isLockedBySomeoneElse(targetPosition, player)) {
+            return;
+        }
+
+        // 3. Within reach?
+        double distanceSquared = player.distanceToSqr(targetPosition.getX() + 0.5, targetPosition.getY() + 0.5, targetPosition.getZ() + 0.5);
+        if (distanceSquared > MAX_CARVE_REACH_DISTANCE * MAX_CARVE_REACH_DISTANCE) {
+            return;
+        }
+
+        // 4. Ensure carved data container exists
+        if (!CarvingManager.isCarved(worldLevel, targetPosition)) {
+            BlockState blockState = worldLevel.getBlockState(targetPosition);
+            if (blockState.isAir() || !blockState.getFluidState().isEmpty() || blockState.getDestroySpeed(worldLevel, targetPosition) < 0.0F) {
+                return;
+            }
+            CarvedData freshCarvedData = new CarvedData(
+                blockState,
+                player.getUUID(),
+                payload.resolution()
+            );
+            CarvingManager.setCarvedData(worldLevel, targetPosition, freshCarvedData);
+        }
+
+        CarvedData carvedData = CarvingManager.getCarvedData(worldLevel, targetPosition);
+        if (carvedData == null) {
+            return;
+        }
+
+        // 5. Replace voxel materials with pasted clipboard data
+        carvedData.getVoxelMaterials().clear();
+        carvedData.getVoxelMaterials().putAll(payload.voxelMaterials());
+        carvedData.rebuildBlockPalette();
+
+        // 6. Recalculate collision and visual bounding shapes
+        var computedShape = CarvingModelFactory.calculateCollisionShape(carvedData);
+        carvedData.setCollisionShape(computedShape);
+        carvedData.setVisualShape(computedShape);
+        carvedData.setInteractionShape(computedShape);
+        carvedData.incrementVersion();
+
+        BlockState currentBlockState = worldLevel.getBlockState(targetPosition);
+        worldLevel.sendBlockUpdated(targetPosition, currentBlockState, currentBlockState, 3);
+        worldLevel.playSound(null, targetPosition, currentBlockState.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
+
+        // 7. Broadcast the pasted voxel grid to all tracking clients
+        SyncCarvedDataPayload syncPayload = new SyncCarvedDataPayload(
+            targetPosition,
+            carvedData.getOriginalBlockState(),
+            carvedData.getOwnerUuid(),
+            carvedData.getResolution(),
+            carvedData.getVersion(),
+            new HashMap<>(carvedData.getVoxelMaterials())
+        );
+        Services.NETWORK.sendToTrackingClients(worldLevel, targetPosition, syncPayload);
+    }
 }

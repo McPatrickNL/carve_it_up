@@ -1,12 +1,4 @@
 {
-  "carve_it_up.configuration.title": "Carve It Up Configs",
-  "carve_it_up.configuration.section.carve_it_up.common.toml": "Carve It Up Configs",
-  "carve_it_up.configuration.section.carve_it_up.common.toml.title": "Carve It Up Configs",
-  "carve_it_up.configuration.items": "Item List",
-  "carve_it_up.configuration.logDirtBlock": "Log Dirt Block",
-  "carve_it_up.configuration.magicNumberIntroduction": "Magic Number Text",
-  "carve_it_up.configuration.magicNumber": "Magic Number",
-
   "itemGroup.carve_it_up.carve_it_up_tab": "Carve It Up Tab",
   "itemGroup.carve_it_up": "Carve It Up",
 
@@ -14,8 +6,38 @@
 
   "item.carve_it_up.example_item": "Example Item",
   "item.carve_it_up.carving_tool": "Carving Tool",
+  "item.carve_it_up.iron_carving_tool": "Iron Carving Tool",
 
   "key.category.carve_it_up.carve_it_up": "Carve It Up",
-  "carve_it_up.key.category_key": "Category Selector",
-  "carve_it_up.key.submenu_key": "Submenu Selector"
+  "carve_it_up.key.category_key": "Category Selector (Hold + Scroll)",
+  "carve_it_up.key.submenu_key": "Submenu Selector (Hold + Scroll)",
+
+  "carve_it_up.right_click.replace_base": "Replace Base",
+  "carve_it_up.right_click.copy": "Copy Data",
+  "carve_it_up.right_click.paste": "Paste Data",
+
+  "carve_it_up.mode.remove": "Remove",
+  "carve_it_up.mode.add": "Add",
+  "carve_it_up.mode.replace": "Replace",
+  "carve_it_up.mode.rotate_right": "Rotate Right",
+  "carve_it_up.mode.rotate_left": "Rotate Left",
+  "carve_it_up.mode.rotate_up": "Rotate Up",
+  "carve_it_up.mode.rotate_down": "Rotate Down",
+
+  "carve_it_up.pattern.voxel": "Single Voxel",
+  "carve_it_up.pattern.plane_2x2": "Plane 2x2",
+  "carve_it_up.pattern.plane_3x3": "Plane 3x3",
+  "carve_it_up.pattern.plane_4x4": "Plane 4x4",
+  "carve_it_up.pattern.cube_3x3x3": "3x3x3 Cube",
+  "carve_it_up.pattern.multi_voxel_2": "Multi-Voxel 2x2x2",
+  "carve_it_up.pattern.multi_voxel_4": "Multi-Voxel 4x4x4",
+  "carve_it_up.pattern.face": "Entire Face",
+  "carve_it_up.pattern.line": "Linear Depth Line",
+
+  "carve_it_up.configuration.title": "Carve It Up Settings",
+  "carve_it_up.configuration.hud_enabled": "Enable HUD",
+  "carve_it_up.configuration.show_action_overlay": "Show Action Overlay",
+  "carve_it_up.configuration.default_grid_resolution": "Default Grid Resolution",
+  "carve_it_up.configuration.max_carve_reach_distance": "Max Carve Reach Distance",
+  "carve_it_up.configuration.survival_requires_materials": "Survival Requires Materials"
 }
