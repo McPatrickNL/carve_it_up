@@ -555,10 +555,6 @@ public class CarvingModelFactory {
                         float maxV = (float) (v + h) / resolution;
                         float normalW = (float) (axisDir == Direction.AxisDirection.POSITIVE ? wVal + 1 : wVal) / resolution;
 
-                        // Calculate continuous UV texture coordinates aligned with world axes
-                        org.joml.Vector3f p0, p1, p2, p3;
-                        long uv0, uv1, uv2, uv3;
-
                         // Retrieve active material info
                         BakedQuad.MaterialInfo matInfo = getMaterialInfo(material, direction, fallbackInfo);
                         if (matInfo != null) {
@@ -568,78 +564,98 @@ public class CarvingModelFactory {
                             float spriteMinV = sprite.getV0();
                             float spriteMaxV = sprite.getV1();
 
-                            float texMinU = spriteMinU + (spriteMaxU - spriteMinU) * minU;
-                            float texMaxU = spriteMinU + (spriteMaxU - spriteMinU) * maxU;
-
-                            // For vertical faces, invert V so higher Y aligns with the top of the sprite (spriteMinV)
-                            float texTopV = spriteMinV + (spriteMaxV - spriteMinV) * (1.0f - maxV);
-                            float texBottomV = spriteMinV + (spriteMaxV - spriteMinV) * (1.0f - minV);
-
-                            // For horizontal faces, V maps directly along the Z axis
-                            float texMinZ = spriteMinV + (spriteMaxV - spriteMinV) * minV;
-                            float texMaxZ = spriteMinV + (spriteMaxV - spriteMinV) * maxV;
+                            org.joml.Vector3f p0, p1, p2, p3;
+                            float u0, v0, u1, v1;
 
                             if (direction == Direction.DOWN) {
-                                p0 = new org.joml.Vector3f(minU, normalW, maxV);
-                                p1 = new org.joml.Vector3f(minU, normalW, minV);
-                                p2 = new org.joml.Vector3f(maxU, normalW, minV);
-                                p3 = new org.joml.Vector3f(maxU, normalW, maxV);
+                                float minX = minU, maxX = maxU;
+                                float minZ = minV, maxZ = maxV;
 
-                                uv0 = packUV(texMinU, texMaxZ);
-                                uv1 = packUV(texMinU, texMinZ);
-                                uv2 = packUV(texMaxU, texMinZ);
-                                uv3 = packUV(texMaxU, texMaxZ);
+                                p0 = new org.joml.Vector3f(minX, normalW, maxZ);
+                                p1 = new org.joml.Vector3f(minX, normalW, minZ);
+                                p2 = new org.joml.Vector3f(maxX, normalW, minZ);
+                                p3 = new org.joml.Vector3f(maxX, normalW, maxZ);
+
+                                u0 = minX;
+                                v0 = 1.0f - maxZ;
+                                u1 = maxX;
+                                v1 = 1.0f - minZ;
                             } else if (direction == Direction.UP) {
-                                p0 = new org.joml.Vector3f(minU, normalW, minV);
-                                p1 = new org.joml.Vector3f(minU, normalW, maxV);
-                                p2 = new org.joml.Vector3f(maxU, normalW, maxV);
-                                p3 = new org.joml.Vector3f(maxU, normalW, minV);
+                                float minX = minU, maxX = maxU;
+                                float minZ = minV, maxZ = maxV;
 
-                                uv0 = packUV(texMinU, texMinZ);
-                                uv1 = packUV(texMinU, texMaxZ);
-                                uv2 = packUV(texMaxU, texMaxZ);
-                                uv3 = packUV(texMaxU, texMinZ);
+                                p0 = new org.joml.Vector3f(minX, normalW, minZ);
+                                p1 = new org.joml.Vector3f(minX, normalW, maxZ);
+                                p2 = new org.joml.Vector3f(maxX, normalW, maxZ);
+                                p3 = new org.joml.Vector3f(maxX, normalW, minZ);
+
+                                u0 = minX;
+                                v0 = minZ;
+                                u1 = maxX;
+                                v1 = maxZ;
                             } else if (direction == Direction.NORTH) {
-                                p0 = new org.joml.Vector3f(maxU, maxV, normalW);
-                                p1 = new org.joml.Vector3f(maxU, minV, normalW);
-                                p2 = new org.joml.Vector3f(minU, minV, normalW);
-                                p3 = new org.joml.Vector3f(minU, maxV, normalW);
+                                float minX = minU, maxX = maxU;
+                                float minY = minV, maxY = maxV;
 
-                                uv0 = packUV(texMaxU, texTopV);
-                                uv1 = packUV(texMaxU, texBottomV);
-                                uv2 = packUV(texMinU, texBottomV);
-                                uv3 = packUV(texMinU, texTopV);
+                                p0 = new org.joml.Vector3f(maxX, maxY, normalW);
+                                p1 = new org.joml.Vector3f(maxX, minY, normalW);
+                                p2 = new org.joml.Vector3f(minX, minY, normalW);
+                                p3 = new org.joml.Vector3f(minX, maxY, normalW);
+
+                                u0 = 1.0f - maxX;
+                                v0 = 1.0f - maxY;
+                                u1 = 1.0f - minX;
+                                v1 = 1.0f - minY;
                             } else if (direction == Direction.SOUTH) {
-                                p0 = new org.joml.Vector3f(minU, maxV, normalW);
-                                p1 = new org.joml.Vector3f(minU, minV, normalW);
-                                p2 = new org.joml.Vector3f(maxU, minV, normalW);
-                                p3 = new org.joml.Vector3f(maxU, maxV, normalW);
+                                float minX = minU, maxX = maxU;
+                                float minY = minV, maxY = maxV;
 
-                                uv0 = packUV(texMinU, texTopV);
-                                uv1 = packUV(texMinU, texBottomV);
-                                uv2 = packUV(texMaxU, texBottomV);
-                                uv3 = packUV(texMaxU, texTopV);
+                                p0 = new org.joml.Vector3f(minX, maxY, normalW);
+                                p1 = new org.joml.Vector3f(minX, minY, normalW);
+                                p2 = new org.joml.Vector3f(maxX, minY, normalW);
+                                p3 = new org.joml.Vector3f(maxX, maxY, normalW);
+
+                                u0 = minX;
+                                v0 = 1.0f - maxY;
+                                u1 = maxX;
+                                v1 = 1.0f - minY;
                             } else if (direction == Direction.WEST) {
-                                p0 = new org.joml.Vector3f(normalW, maxV, minU);
-                                p1 = new org.joml.Vector3f(normalW, minV, minU);
-                                p2 = new org.joml.Vector3f(normalW, minV, maxU);
-                                p3 = new org.joml.Vector3f(normalW, maxV, maxU);
+                                float minZ = minU, maxZ = maxU;
+                                float minY = minV, maxY = maxV;
 
-                                uv0 = packUV(texMinU, texTopV);
-                                uv1 = packUV(texMinU, texBottomV);
-                                uv2 = packUV(texMaxU, texBottomV);
-                                uv3 = packUV(texMaxU, texTopV);
+                                p0 = new org.joml.Vector3f(normalW, maxY, minZ);
+                                p1 = new org.joml.Vector3f(normalW, minY, minZ);
+                                p2 = new org.joml.Vector3f(normalW, minY, maxZ);
+                                p3 = new org.joml.Vector3f(normalW, maxY, maxZ);
+
+                                u0 = minZ;
+                                v0 = 1.0f - maxY;
+                                u1 = maxZ;
+                                v1 = 1.0f - minY;
                             } else { // EAST
-                                p0 = new org.joml.Vector3f(normalW, maxV, maxU);
-                                p1 = new org.joml.Vector3f(normalW, minV, maxU);
-                                p2 = new org.joml.Vector3f(normalW, minV, minU);
-                                p3 = new org.joml.Vector3f(normalW, maxV, minU);
+                                float minZ = minU, maxZ = maxU;
+                                float minY = minV, maxY = maxV;
 
-                                uv0 = packUV(texMaxU, texTopV);
-                                uv1 = packUV(texMaxU, texBottomV);
-                                uv2 = packUV(texMinU, texBottomV);
-                                uv3 = packUV(texMinU, texTopV);
+                                p0 = new org.joml.Vector3f(normalW, maxY, maxZ);
+                                p1 = new org.joml.Vector3f(normalW, minY, maxZ);
+                                p2 = new org.joml.Vector3f(normalW, minY, minZ);
+                                p3 = new org.joml.Vector3f(normalW, maxY, minZ);
+
+                                u0 = 1.0f - maxZ;
+                                v0 = 1.0f - maxY;
+                                u1 = 1.0f - minZ;
+                                v1 = 1.0f - minY;
                             }
+
+                            float uvMinU = spriteMinU + (spriteMaxU - spriteMinU) * u0;
+                            float uvMaxU = spriteMinU + (spriteMaxU - spriteMinU) * u1;
+                            float uvMinV = spriteMinV + (spriteMaxV - spriteMinV) * v0;
+                            float uvMaxV = spriteMinV + (spriteMaxV - spriteMinV) * v1;
+
+                            long uv0 = packUV(uvMinU, uvMinV);
+                            long uv1 = packUV(uvMinU, uvMaxV);
+                            long uv2 = packUV(uvMaxU, uvMaxV);
+                            long uv3 = packUV(uvMaxU, uvMinV);
 
                             BakedQuad quad = new BakedQuad(
                                 p0, p1, p2, p3,
