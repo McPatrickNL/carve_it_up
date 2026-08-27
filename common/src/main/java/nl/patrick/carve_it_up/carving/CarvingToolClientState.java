@@ -29,9 +29,8 @@ public class CarvingToolClientState {
     public static int activePatternIndex = 0; // Cycles CarvingPattern
     public static int activeMaterialIndex = 0; // Cycles available materials
 
-    // NewStart Stably persist explicitly selected material across crosshair movement
+    // Stably persist explicitly selected material across crosshair movement
     private static Block explicitlySelectedMaterial = null;
-    // NewEnd
 
     public static final int DEFAULT_MULTI_VOXEL_WIDTH = 3;
 
@@ -139,14 +138,12 @@ public class CarvingToolClientState {
         return carvingPatterns[Math.abs(activePatternIndex % carvingPatterns.length)];
     }
 
-    // NewStart Return stably selected material
     public static Block getSelectedMaterialBlock() {
         List<Block> availableMaterials = getAvailableMaterials();
         if (explicitlySelectedMaterial != null) {
             if (availableMaterials.contains(explicitlySelectedMaterial)) {
                 return explicitlySelectedMaterial;
             }
-            // If crosshair momentarily leaves or points at air, retain the user's chosen material
             return explicitlySelectedMaterial;
         }
         if (!availableMaterials.isEmpty()) {
@@ -204,7 +201,6 @@ public class CarvingToolClientState {
         // 3. Fallback strictly to target block's base material
         return baseState;
     }
-    // NewEnd
 
     /**
      * Dual-axis scrolling router triggered by mouse wheel events.

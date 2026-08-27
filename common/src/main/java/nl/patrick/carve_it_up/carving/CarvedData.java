@@ -22,8 +22,8 @@ import java.util.UUID;
  */
 public class CarvedData {
 
-    private final BlockState originalBlockState;
-    private final Block mainBlock;
+    private BlockState originalBlockState;
+    private Block mainBlock;
     private final List<Block> blocks = new ArrayList<>();
 
     // Dynamic Grid Support
@@ -69,6 +69,16 @@ public class CarvedData {
 
     public BlockState getOriginalBlockState() {
         return originalBlockState;
+    }
+
+    public void setOriginalBlockState(BlockState state) {
+        if (state != null && !state.isAir()) {
+            this.originalBlockState = state;
+            this.mainBlock = state.getBlock();
+            if (!this.blocks.contains(this.mainBlock)) {
+                this.blocks.add(this.mainBlock);
+            }
+        }
     }
 
     public Block getMainBlock() {

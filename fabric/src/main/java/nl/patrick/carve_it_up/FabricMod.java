@@ -51,11 +51,15 @@ public class FabricMod implements ModInitializer {
 
         // NewStart Register payload types for C2S and S2C communication on Fabric
         PayloadTypeRegistry.serverboundPlay().register(RequestCarveActionPayload.TYPE, RequestCarveActionPayload.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload.TYPE, nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SyncCarvedDataPayload.TYPE, SyncCarvedDataPayload.STREAM_CODEC);
 
         // Server-side receiver for the carve action request
         ServerPlayNetworking.registerGlobalReceiver(RequestCarveActionPayload.TYPE, (payload, context) ->
             context.server().execute(() -> CarvingNetworkHandlers.handleCarveActionRequest(payload, context.player()))
+        );
+        ServerPlayNetworking.registerGlobalReceiver(nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload.TYPE, (payload, context) ->
+            context.server().execute(() -> CarvingNetworkHandlers.handleChangeBaseMaterialRequest(payload, context.player()))
         );
         // NewEnd
     }

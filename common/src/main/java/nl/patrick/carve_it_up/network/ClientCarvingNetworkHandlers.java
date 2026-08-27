@@ -75,6 +75,7 @@ public class ClientCarvingNetworkHandlers {
 
             chunkCarvedData.addCarvedData(clientLevel, targetBlockPos, freshCarvedData);
         } else {
+            existingCarvedData.setOriginalBlockState(payload.originalBlockState());
             existingCarvedData.getVoxelMaterials().clear();
             existingCarvedData.getVoxelMaterials().putAll(payload.voxelMaterials());
             existingCarvedData.rebuildBlockPalette();

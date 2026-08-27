@@ -211,7 +211,21 @@ public class CarvingToolItem extends Item {
             return InteractionResult.PASS;
         }
 
-        // 2. NORMAL RIGHT CLICK = ADD CARVED DATA CONTAINER
+        // 2. RIGHT CLICK IN MATERIAL CATEGORY (OR WITH LOADED MATERIAL ON CARVED BLOCK) = CHANGE BASE MATERIAL
+        if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
+            if (worldLevel.isClientSide()) {
+                if (nl.patrick.carve_it_up.carving.CarvingToolClientState.activeCategory == 2) {
+                    Block selectedMaterial = nl.patrick.carve_it_up.carving.CarvingToolClientState.getSelectedMaterialBlock();
+                    if (selectedMaterial != null && selectedMaterial != Blocks.AIR) {
+                        Services.NETWORK.sendToServer(new nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload(targetBlockPos, selectedMaterial.defaultBlockState()));
+                        return InteractionResult.SUCCESS;
+                    }
+                }
+            }
+            return InteractionResult.PASS;
+        }
+
+        // 3. NORMAL RIGHT CLICK = ADD CARVED DATA CONTAINER
         if (!CarvingManager.isCarved(worldLevel, targetBlockPos)) {
             UUID ownerUuid = context.getPlayer() != null ? context.getPlayer().getUUID() : UUID.randomUUID();
             int gridResolution = 16;

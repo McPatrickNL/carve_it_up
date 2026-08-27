@@ -47,5 +47,12 @@ public class ClientCarvingCache { // Converted from Allman style brace
         MODEL_CACHE.remove(blockPos);
     }
 
+    /**
+     * Clears all cached block models.
+     */
+    public static void clear() {
+        MODEL_CACHE.clear();
+    }
+
     private record CacheEntry(int version, BlockStateModel stateModel) {}
 }

@@ -95,7 +95,6 @@ public abstract class GuiMixin {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, activePattern.getIdentifier(), s2X + 3, startY + 3, 16, 16);
 
         // --- SLOT 3: ACTIVE BLOCK MATERIAL ---
-        // NewStart Retrieve all available materials (carved block + inventory/offhand)
         List<Block> blocks = CarvingToolClientState.getAvailableMaterials();
         Block activeBlock = CarvingToolClientState.getSelectedMaterialBlock();
 
@@ -109,7 +108,6 @@ public abstract class GuiMixin {
                 graphics.text(font, questionComp, s3X + 11 - font.width(questionComp) / 2, startY + 7, 0xFFFFFFFF, false);
             }
         }
-        // NewEnd
 
         // Draw the selection frame overlay over the active slot
         int activeSlotX = startX + (CarvingToolClientState.activeCategory * (slotSize + spacing));

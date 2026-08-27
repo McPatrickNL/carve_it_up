@@ -61,5 +61,12 @@ public class NeoForgeMod { // Converted from Allman style brace
                 CarvingNetworkHandlers.handleCarveActionRequest(payload, (ServerPlayer) context.player())
             )
         );
+        registrar.playToServer(
+            nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload.TYPE,
+            nl.patrick.carve_it_up.network.RequestChangeBaseMaterialPayload.STREAM_CODEC,
+            (payload, context) -> context.enqueueWork(() ->
+                CarvingNetworkHandlers.handleChangeBaseMaterialRequest(payload, (ServerPlayer) context.player())
+            )
+        );
     }
 }

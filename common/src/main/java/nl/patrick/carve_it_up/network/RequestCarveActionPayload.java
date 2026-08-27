@@ -31,6 +31,7 @@ public record RequestCarveActionPayload(
     Direction face,
     int width
 ) implements CustomPacketPayload {
+
     public static final Type<RequestCarveActionPayload> TYPE =
         new Type<>(Identifier.fromNamespaceAndPath(MOD_ID, "request_carve_action"));
 
@@ -46,9 +47,7 @@ public record RequestCarveActionPayload(
         buffer.writeVarInt(payload.voxelX());
         buffer.writeVarInt(payload.voxelY());
         buffer.writeVarInt(payload.voxelZ());
-        // NewStart Serialize block state as VarInt registry ID to fix writeBlockState compilation error
         buffer.writeVarInt(Block.getId(payload.material()));
-        // NewEnd
         Direction.STREAM_CODEC.encode(buffer, payload.direction());
         Direction.STREAM_CODEC.encode(buffer, payload.face());
         buffer.writeVarInt(payload.width());
@@ -61,9 +60,7 @@ public record RequestCarveActionPayload(
         int voxelX = buffer.readVarInt();
         int voxelY = buffer.readVarInt();
         int voxelZ = buffer.readVarInt();
-        // NewStart Deserialize block state from VarInt registry ID to fix readBlockState compilation error
         BlockState material = Block.stateById(buffer.readVarInt());
-        // NewEnd
         Direction direction = Direction.STREAM_CODEC.decode(buffer);
         Direction face = Direction.STREAM_CODEC.decode(buffer);
         int width = buffer.readVarInt();
