@@ -179,4 +179,37 @@ public class CarvingManager {
             }
         }
     }
+
+    /**
+     * Centralized validator for blocks that are not allowed to be carved.
+     * Prevents carving on plants, crops, bamboo, stems, vines, and complex animated block entities.
+     */
+    public static boolean isCarvingDisallowed(net.minecraft.world.level.block.state.BlockState state) {
+        if (state == null || state.isAir()) {
+            return true;
+        }
+        net.minecraft.world.level.block.Block block = state.getBlock();
+
+        // Future: Support plant & crop carving (cross # / X shapes)
+        if (block instanceof net.minecraft.world.level.block.VegetationBlock
+            || block instanceof net.minecraft.world.level.block.BushBlock
+            || block instanceof net.minecraft.world.level.block.SugarCaneBlock
+            || block instanceof net.minecraft.world.level.block.CactusBlock
+            || block instanceof net.minecraft.world.level.block.BambooStalkBlock
+            || block instanceof net.minecraft.world.level.block.BambooSaplingBlock
+            || block instanceof net.minecraft.world.level.block.StemBlock
+            || block instanceof net.minecraft.world.level.block.AttachedStemBlock
+            || block instanceof net.minecraft.world.level.block.VineBlock
+            || block instanceof net.minecraft.world.level.block.MultifaceBlock) {
+            return true;
+        }
+
+        // Future: Support chest lid animation on carved voxel chests
+        if (block instanceof net.minecraft.world.level.block.ChestBlock
+            || block instanceof net.minecraft.world.level.block.EnderChestBlock) {
+            return true;
+        }
+
+        return false;
+    }
 }

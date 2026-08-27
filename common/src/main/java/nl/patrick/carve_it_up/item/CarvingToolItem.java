@@ -189,8 +189,9 @@ public class CarvingToolItem extends Item {
         BlockPos targetBlockPos = context.getClickedPos();
         BlockState originalBlockState = worldLevel.getBlockState(targetBlockPos);
 
-        // Prevent carving air, liquids, or unbreakable blocks (like bedrock)
-        if (originalBlockState.isAir() || !originalBlockState.getFluidState().isEmpty() || originalBlockState.getDestroySpeed(worldLevel, targetBlockPos) < 0.0F) {
+        // Prevent carving air, liquids, unbreakable blocks, plants/crops, or chests
+        if (originalBlockState.isAir() || !originalBlockState.getFluidState().isEmpty() || originalBlockState.getDestroySpeed(worldLevel, targetBlockPos) < 0.0F
+            || CarvingManager.isCarvingDisallowed(originalBlockState)) {
             return InteractionResult.FAIL;
         }
 
@@ -201,14 +202,11 @@ public class CarvingToolItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        // 1. SNEAK + RIGHT CLICK = REMOVE DATA (TESTING)
-        if (context.getPlayer() != null && context.getPlayer().isCrouching()) {
-            if (CarvingManager.isCarved(worldLevel, targetBlockPos)) {
-                CarvingManager.removeCarvedData(worldLevel, targetBlockPos);
-                worldLevel.sendBlockUpdated(targetBlockPos, originalBlockState, originalBlockState, 3);
-                return InteractionResult.SUCCESS;
-            }
-            return InteractionResult.PASS;
+        // 1. SNEAK + RIGHT CLICK ON ALREADY CARVED BLOCK = REMOVE DATA / REVERT
+        if (context.getPlayer() != null && context.getPlayer().isCrouching() && CarvingManager.isCarved(worldLevel, targetBlockPos)) {
+            CarvingManager.removeCarvedData(worldLevel, targetBlockPos);
+            worldLevel.sendBlockUpdated(targetBlockPos, originalBlockState, originalBlockState, 3);
+            return InteractionResult.SUCCESS;
         }
 
         // 2. RIGHT CLICK ACTIONS (Replace Base, Copy, Paste)

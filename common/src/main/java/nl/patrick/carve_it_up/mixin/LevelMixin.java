@@ -83,6 +83,63 @@ public abstract class LevelMixin {
                         ClientCarvingCache.invalidate(targetBlockPos);
                     }
                 }
+                // 3. INTERACTIVE STATE CHANGE (e.g. door, trapdoor, fence gate opening or closing): rotate 3D voxels
+                else if (nl.patrick.carve_it_up.carving.CarvedBlockRotator.isInteractiveStateTransition(currentCarvedData.getOriginalBlockState(), newBlockState)) {
+                    boolean rotated = nl.patrick.carve_it_up.carving.CarvedBlockRotator.applyStateTransition(currentCarvedData, currentCarvedData.getOriginalBlockState(), newBlockState);
+                    if (rotated) {
+                        var shape = nl.patrick.carve_it_up.carving.CarvingModelFactory.calculateCollisionShape(currentCarvedData);
+                        currentCarvedData.setCollisionShape(shape);
+                        currentCarvedData.setVisualShape(shape);
+                        currentCarvedData.setInteractionShape(shape);
+                        currentCarvedData.incrementVersion();
+
+                        if (!worldLevel.isClientSide()) {
+                            SyncCarvedDataPayload updatePayload = new SyncCarvedDataPayload(
+                                targetBlockPos,
+                                newBlockState,
+                                currentCarvedData.getOwnerUuid(),
+                                currentCarvedData.getResolution(),
+                                currentCarvedData.getVersion(),
+                                new HashMap<>(currentCarvedData.getVoxelMaterials())
+                            );
+                            Services.NETWORK.sendToTrackingClients(worldLevel, targetBlockPos, updatePayload);
+                        } else {
+                            ClientCarvingCache.invalidate(targetBlockPos);
+                        }
+                    } else {
+                        currentCarvedData.setOriginalBlockState(newBlockState);
+                        currentCarvedData.incrementVersion();
+                        if (!worldLevel.isClientSide()) {
+                            SyncCarvedDataPayload updatePayload = new SyncCarvedDataPayload(
+                                targetBlockPos,
+                                newBlockState,
+                                currentCarvedData.getOwnerUuid(),
+                                currentCarvedData.getResolution(),
+                                currentCarvedData.getVersion(),
+                                new HashMap<>(currentCarvedData.getVoxelMaterials())
+                            );
+                            Services.NETWORK.sendToTrackingClients(worldLevel, targetBlockPos, updatePayload);
+                        } else {
+                            ClientCarvingCache.invalidate(targetBlockPos);
+                        }
+                    }
+                } else {
+                    currentCarvedData.setOriginalBlockState(newBlockState);
+                    currentCarvedData.incrementVersion();
+                    if (!worldLevel.isClientSide()) {
+                        SyncCarvedDataPayload updatePayload = new SyncCarvedDataPayload(
+                            targetBlockPos,
+                            newBlockState,
+                            currentCarvedData.getOwnerUuid(),
+                            currentCarvedData.getResolution(),
+                            currentCarvedData.getVersion(),
+                            new HashMap<>(currentCarvedData.getVoxelMaterials())
+                        );
+                        Services.NETWORK.sendToTrackingClients(worldLevel, targetBlockPos, updatePayload);
+                    } else {
+                        ClientCarvingCache.invalidate(targetBlockPos);
+                    }
+                }
             }
         }
     }

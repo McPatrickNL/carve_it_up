@@ -42,6 +42,14 @@ public abstract class MinecraftAttackMixin {
         }
 
         BlockPos hitPos = blockHitResult.getBlockPos();
+        var hitBlockState = minecraftInstance.level.getBlockState(hitPos);
+
+        // Prevent carving air, liquids, unbreakable blocks, plants/crops, or chests
+        if (hitBlockState.isAir() || !hitBlockState.getFluidState().isEmpty() || hitBlockState.getDestroySpeed(minecraftInstance.level, hitPos) < 0.0F
+            || CarvingManager.isCarvingDisallowed(hitBlockState)) {
+            return;
+        }
+
         Direction hitDirection = blockHitResult.getDirection();
         CarvingMode selectedMode = CarvingToolClientState.getSelectedMode();
         CarvingPattern selectedPattern = CarvingToolClientState.getSelectedPattern();
@@ -78,23 +86,25 @@ public abstract class MinecraftAttackMixin {
                     }
                 }
             }
-        } else if (selectedMode == CarvingMode.ADD) {
-            // Clicking against an outside surface (e.g. adjacent solid block) in ADD mode
-            BlockPos adjPos = hitPos.relative(hitDirection);
-            if (CarvingManager.isCarved(minecraftInstance.level, adjPos)) {
-                targetCarvedPos = adjPos;
-                var hitLocation = blockHitResult.getLocation();
-                double localX = hitLocation.x - adjPos.getX() + hitDirection.getStepX() * 0.0001;
-                double localY = hitLocation.y - adjPos.getY() + hitDirection.getStepY() * 0.0001;
-                double localZ = hitLocation.z - adjPos.getZ() + hitDirection.getStepZ() * 0.0001;
-                targetX = Math.min(15, Math.max(0, (int) Math.floor(localX * 16.0)));
-                targetY = Math.min(15, Math.max(0, (int) Math.floor(localY * 16.0)));
-                targetZ = Math.min(15, Math.max(0, (int) Math.floor(localZ * 16.0)));
-            } else {
+        } else {
+            // Block is not yet carved: auto-initialize and carve directly on first attack
+            VoxelCoordinates targetedVoxel = VoxelTargetingUtility.extractTargetedVoxel(blockHitResult);
+            if (targetedVoxel == null) {
                 return;
             }
-        } else {
-            return;
+            targetX = targetedVoxel.voxelX();
+            targetY = targetedVoxel.voxelY();
+            targetZ = targetedVoxel.voxelZ();
+
+            if (selectedMode == CarvingMode.ADD) {
+                targetX += hitDirection.getStepX();
+                targetY += hitDirection.getStepY();
+                targetZ += hitDirection.getStepZ();
+                if (targetX < 0 || targetX >= 16 || targetY < 0 || targetY >= 16 || targetZ < 0 || targetZ >= 16) {
+                    callbackInfoReturnable.setReturnValue(false);
+                    return;
+                }
+            }
         }
 
         var selectedMaterial = CarvingToolClientState.getMaterialForTargetBlock(
@@ -125,17 +135,11 @@ public abstract class MinecraftAttackMixin {
     }
     // NewEnd
 
-    // NewStart Prevent mining progress ticks and breaking animations while holding the carving tool on carved blocks or adjacent blocks in ADD mode
+    // NewStart Prevent mining progress ticks and breaking animations while holding the carving tool
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
     private void carveitup$interceptContinueAttack(boolean leftClick, CallbackInfo callbackInfo) {
-        Minecraft minecraftInstance = Minecraft.getInstance();
-        if (CarvingToolClientState.isHoldingCarvingTool() && minecraftInstance.level != null && minecraftInstance.hitResult instanceof BlockHitResult blockHitResult && blockHitResult.getType() == HitResult.Type.BLOCK) {
-            BlockPos hitPos = blockHitResult.getBlockPos();
-            if (CarvingManager.isCarved(minecraftInstance.level, hitPos)) {
-                callbackInfo.cancel();
-            } else if (CarvingToolClientState.getSelectedMode() == CarvingMode.ADD && CarvingManager.isCarved(minecraftInstance.level, hitPos.relative(blockHitResult.getDirection()))) {
-                callbackInfo.cancel();
-            }
+        if (CarvingToolClientState.isHoldingCarvingTool()) {
+            callbackInfo.cancel();
         }
     }
     // NewEnd

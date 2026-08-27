@@ -690,6 +690,24 @@ public class CarvingModelFactory {
      * @return The resolved MaterialInfo for quad baking
      */
     public static BakedQuad.MaterialInfo getMaterialInfo(BlockState state, Direction direction, BakedQuad.MaterialInfo fallback) {
+        if (state == null) {
+            return fallback;
+        }
+
+        // Special handling for blocks without standard cubic baked quads (e.g. Chests, Crops, Flowers)
+        if (state.getBlock() instanceof net.minecraft.world.level.block.ChestBlock || state.getBlock() instanceof net.minecraft.world.level.block.TrappedChestBlock) {
+            return getMaterialInfo(net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState(), direction, fallback);
+        }
+        if (state.getBlock() instanceof net.minecraft.world.level.block.EnderChestBlock) {
+            return getMaterialInfo(net.minecraft.world.level.block.Blocks.OBSIDIAN.defaultBlockState(), direction, fallback);
+        }
+        if (state.getBlock() instanceof net.minecraft.world.level.block.CropBlock) {
+            return getMaterialInfo(net.minecraft.world.level.block.Blocks.MOSS_BLOCK.defaultBlockState(), direction, fallback);
+        }
+        if (state.getBlock() instanceof net.minecraft.world.level.block.BushBlock || state.getBlock() instanceof net.minecraft.world.level.block.SugarCaneBlock) {
+            return getMaterialInfo(net.minecraft.world.level.block.Blocks.OAK_LEAVES.defaultBlockState(), direction, fallback);
+        }
+
         try {
             BlockStateModel model = Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(state);
             if (model != null) {
@@ -714,7 +732,19 @@ public class CarvingModelFactory {
         } catch (Throwable throwable) {
             // Safe fallback for server/non-client calls
         }
-        return fallback;
+
+        if (fallback != null) {
+            return fallback;
+        }
+
+        // Ultimate fallback
+        try {
+            if (state.getBlock() != net.minecraft.world.level.block.Blocks.OAK_PLANKS) {
+                return getMaterialInfo(net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState(), direction, null);
+            }
+        } catch (Throwable ignored) {}
+
+        return null;
     }
 
     /**

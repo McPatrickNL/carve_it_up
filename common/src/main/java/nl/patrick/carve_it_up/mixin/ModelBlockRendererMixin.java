@@ -61,6 +61,7 @@ public class ModelBlockRendererMixin {
                         customBakedModel,
                         randomSeed
                     );
+
                     callbackInfo.cancel();
                 }
             }

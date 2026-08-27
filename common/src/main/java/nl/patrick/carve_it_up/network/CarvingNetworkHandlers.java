@@ -43,18 +43,20 @@ public class CarvingNetworkHandlers {
             return;
         }
 
+        BlockState currentTargetState = worldLevel.getBlockState(targetPosition);
+        if (currentTargetState.isAir() || !currentTargetState.getFluidState().isEmpty() || currentTargetState.getDestroySpeed(worldLevel, targetPosition) < 0.0F
+            || CarvingManager.isCarvingDisallowed(currentTargetState)) {
+            return;
+        }
+
         // 2. Block still carved? If not carved, initialize on-the-fly from the original in-world shape
         if (!CarvingManager.isCarved(worldLevel, targetPosition)) {
-            BlockState blockState = worldLevel.getBlockState(targetPosition);
-            if (blockState.isAir() || !blockState.getFluidState().isEmpty() || blockState.getDestroySpeed(worldLevel, targetPosition) < 0.0F) {
-                return;
-            }
             CarvedData freshCarvedData = new CarvedData(
-                blockState,
+                currentTargetState,
                 player.getUUID(),
                 16
             );
-            CarvingModelFactory.populateFromShape(freshCarvedData, blockState, worldLevel, targetPosition);
+            CarvingModelFactory.populateFromShape(freshCarvedData, currentTargetState, worldLevel, targetPosition);
             CarvingManager.setCarvedData(worldLevel, targetPosition, freshCarvedData);
         }
 
